@@ -9,5 +9,6 @@ namespace GroupThreeTrailerParkProject.Data
             : base(options)
         {
         }
+        public DbSet<Reservation> Reservations { get; set; }
     }
 }
