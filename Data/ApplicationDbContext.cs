@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using GroupThreeTrailerParkProject.Models;
 
 namespace GroupThreeTrailerParkProject.Data
 {
@@ -10,5 +11,6 @@ namespace GroupThreeTrailerParkProject.Data
         {
         }
         public DbSet<Reservation> Reservations { get; set; }
+        public DbSet<GroupThreeTrailerParkProject.Models.SiteCategory> SiteCategory { get; set; } = default!;
     }
 }
