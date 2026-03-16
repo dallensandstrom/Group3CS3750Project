@@ -25,7 +25,7 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=AdminReservations}/{action=Index}/{id?}");
+    pattern: "{controller=SiteCategories}/{action=Index}/{id?}");
 
 using (var scope = app.Services.CreateScope())
 {
