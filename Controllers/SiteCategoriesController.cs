@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -10,62 +8,97 @@ using GroupThreeTrailerParkProject.Models;
 
 namespace GroupThreeTrailerParkProject.Controllers
 {
-    public class SiteCategoriesController : Controller
+    public class SiteController : Controller
     {
         private readonly ApplicationDbContext _context;
 
-        public SiteCategoriesController(ApplicationDbContext context)
+        public SiteController(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        // GET: SiteCategories
         public async Task<IActionResult> Index()
         {
-            return View(await _context.SiteCategory.ToListAsync());
+            var sites = await _context.Site.ToListAsync();
+            return View(sites);
         }
 
-        // GET: SiteCategories/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var siteCategory = await _context.SiteCategory
-                .FirstOrDefaultAsync(m => m.SiteCategoryId == id);
-            if (siteCategory == null)
-            {
-                return NotFound();
-            }
-
-            return View(siteCategory);
-        }
-
-        // GET: SiteCategories/Create
         public IActionResult Create()
         {
+            ViewBag.SiteCategoryId = new SelectList(_context.SiteCategory, "SiteCategoryId", "Name");
             return View();
         }
 
-        // POST: SiteCategories/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("SiteCategoryId,Name,Price,PricePerWeek,PricePerMonth")] SiteCategory siteCategory)
+        public async Task<IActionResult> Create(Site site)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(siteCategory);
+                _context.Site.Add(site);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(siteCategory);
+
+            ViewBag.SiteCategoryId = new SelectList(_context.SiteCategory, "SiteCategoryId", "Name", site.SiteCategoryId);
+            return View(site);
         }
 
-        // GET: SiteCategories/Edit/5
+        public async Task<IActionResult> CategoryManage()
+        {
+            ViewBag.Categories = await _context.SiteCategory.ToListAsync();
+
+            return View(new SiteCategory
+            {
+                Name = string.Empty
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CategoryManage(SiteCategory category, string submitButton)
+        {
+            if (submitButton == "Delete")
+            {
+                if (category.SiteCategoryId != 0)
+                {
+                    var existingCategory = await _context.SiteCategory.FindAsync(category.SiteCategoryId);
+                    if (existingCategory != null)
+                    {
+                        _context.SiteCategory.Remove(existingCategory);
+                        await _context.SaveChangesAsync();
+                    }
+                }
+
+                return RedirectToAction(nameof(CategoryManage));
+            }
+
+            if (submitButton == "Apply")
+            {
+                if (category.SiteCategoryId == 0)
+                {
+                    _context.SiteCategory.Add(category);
+                }
+                else
+                {
+                    var existingCategory = await _context.SiteCategory.FindAsync(category.SiteCategoryId);
+                    if (existingCategory != null)
+                    {
+                        existingCategory.Name = category.Name;
+                        existingCategory.Price = category.Price;
+                        existingCategory.PricePerWeek = category.PricePerWeek;
+                        existingCategory.PricePerMonth = category.PricePerMonth;
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(CategoryManage));
+            }
+
+            ViewBag.Categories = await _context.SiteCategory.ToListAsync();
+            return View(category);
+        }
+
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -73,85 +106,89 @@ namespace GroupThreeTrailerParkProject.Controllers
                 return NotFound();
             }
 
-            var siteCategory = await _context.SiteCategory.FindAsync(id);
-            if (siteCategory == null)
+            var site = await _context.Site.FindAsync(id);
+            if (site == null)
             {
                 return NotFound();
             }
-            return View(siteCategory);
+
+            ViewBag.SiteCategoryId = new SelectList(_context.SiteCategory, "SiteCategoryId", "Name", site.SiteCategoryId);
+
+            ViewBag.Photos = await _context.SitePhotos
+                .Where(p => p.SiteId == site.SiteId)
+                .ToListAsync();
+
+            return View(site);
         }
 
-        // POST: SiteCategories/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("SiteCategoryId,Name,Price,PricePerWeek,PricePerMonth")] SiteCategory siteCategory)
+        public async Task<IActionResult> Edit(int id, Site site, string submitButton, string NewPhotoUrl)
         {
-            if (id != siteCategory.SiteCategoryId)
+            if (id != site.SiteId)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            if (submitButton == "Delete")
             {
-                try
+                var photos = await _context.SitePhotos
+                    .Where(p => p.SiteId == site.SiteId)
+                    .ToListAsync();
+
+                if (photos.Any())
                 {
-                    _context.Update(siteCategory);
-                    await _context.SaveChangesAsync();
+                    _context.SitePhotos.RemoveRange(photos);
                 }
-                catch (DbUpdateConcurrencyException)
+
+                var existingSite = await _context.Site.FindAsync(site.SiteId);
+                if (existingSite != null)
                 {
-                    if (!SiteCategoryExists(siteCategory.SiteCategoryId))
+                    _context.Site.Remove(existingSite);
+                }
+
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (submitButton == "Apply")
+            {
+                if (ModelState.IsValid)
+                {
+                    var existingSite = await _context.Site.FindAsync(site.SiteId);
+                    if (existingSite == null)
                     {
                         return NotFound();
                     }
-                    else
+
+                    existingSite.SiteCategoryId = site.SiteCategoryId;
+                    existingSite.MaxVehicleSize = site.MaxVehicleSize;
+                    existingSite.VisibleToClient = site.VisibleToClient;
+                    existingSite.DefaultPrice = site.DefaultPrice;
+
+                    if (!string.IsNullOrWhiteSpace(NewPhotoUrl))
                     {
-                        throw;
+                        var newPhoto = new SitePhoto
+                        {
+                            SiteId = site.SiteId,
+                            PhotoUrl = NewPhotoUrl
+                        };
+
+                        _context.SitePhotos.Add(newPhoto);
                     }
+
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Edit), new { id = site.SiteId });
                 }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(siteCategory);
-        }
-
-        // GET: SiteCategories/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
             }
 
-            var siteCategory = await _context.SiteCategory
-                .FirstOrDefaultAsync(m => m.SiteCategoryId == id);
-            if (siteCategory == null)
-            {
-                return NotFound();
-            }
+            ViewBag.SiteCategoryId = new SelectList(_context.SiteCategory, "SiteCategoryId", "Name", site.SiteCategoryId);
 
-            return View(siteCategory);
-        }
+            ViewBag.Photos = await _context.SitePhotos
+                .Where(p => p.SiteId == site.SiteId)
+                .ToListAsync();
 
-        // POST: SiteCategories/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var siteCategory = await _context.SiteCategory.FindAsync(id);
-            if (siteCategory != null)
-            {
-                _context.SiteCategory.Remove(siteCategory);
-            }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool SiteCategoryExists(int id)
-        {
-            return _context.SiteCategory.Any(e => e.SiteCategoryId == id);
+            return View(site);
         }
     }
 }

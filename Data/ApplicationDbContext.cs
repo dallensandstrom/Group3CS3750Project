@@ -11,6 +11,10 @@ namespace GroupThreeTrailerParkProject.Data
         {
         }
         public DbSet<Reservation> Reservations { get; set; }
-        public DbSet<GroupThreeTrailerParkProject.Models.SiteCategory> SiteCategory { get; set; } = default!;
+        public DbSet<Site> Site { get; set; } = default!;
+
+        public DbSet<SiteCategory> SiteCategory { get; set; } = default!;
+
+        public DbSet<SitePhoto> SitePhotos { get; set; } = default!;
     }
 }
