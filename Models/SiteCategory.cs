@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace GroupThreeTrailerParkProject.Models
 {
-    public class SiteCategoryModel
+    public class SiteCategory
     {
         [Key]
         public int SiteCategoryId { get; set; }
@@ -19,7 +19,7 @@ namespace GroupThreeTrailerParkProject.Models
         [Column(TypeName = "decimal(10,2)")]
         public decimal PricePerMonth { get; set; }
 
-        public SiteCategoryModel()
+        public SiteCategory()
         {
             
         }

@@ -3,11 +3,12 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace GroupThreeTrailerParkProject.Models
 {
-    public class SiteModel
+    public class Site
     {
         [Key]
         public int SiteId { get; set; }
 
+        [ForeignKey("SiteCategory")]
         public int SiteCategoryId { get; set; }
 
         public int MaxVehicleSize { get; set; }
@@ -17,7 +18,7 @@ namespace GroupThreeTrailerParkProject.Models
         [Column(TypeName = "decimal(10,2)")]
         public decimal DefaultPrice { get; set; }
 
-        public SiteModel()
+        public Site()
         {
             
         }
