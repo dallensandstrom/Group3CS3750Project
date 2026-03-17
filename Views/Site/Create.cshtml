@@ -1,0 +1,49 @@
+﻿@model GroupThreeTrailerParkProject.Models.Site
+
+@{
+    ViewData["Title"] = "Create Site";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4">Create Site</h2>
+
+    <form asp-action="Create" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+        <div class="mb-3">
+            <label asp-for="SiteCategoryId" class="form-label">Site Category</label>
+            <select asp-for="SiteCategoryId" asp-items="ViewBag.SiteCategoryId" class="form-select">
+                <option value="">-- Select Category --</option>
+            </select>
+            <span asp-validation-for="SiteCategoryId" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="MaxVehicleSize" class="form-label"></label>
+            <input asp-for="MaxVehicleSize" class="form-control" />
+            <span asp-validation-for="MaxVehicleSize" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="DefaultPrice" class="form-label"></label>
+            <input asp-for="DefaultPrice" class="form-control" />
+            <span asp-validation-for="DefaultPrice" class="text-danger"></span>
+        </div>
+
+        <div class="form-check mb-4">
+            <input asp-for="VisibleToClient" class="form-check-input" />
+            <label asp-for="VisibleToClient" class="form-check-label"></label>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-success">Create</button>
+            <a asp-action="Index" class="btn btn-secondary">Back</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
