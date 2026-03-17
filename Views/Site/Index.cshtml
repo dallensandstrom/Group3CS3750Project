@@ -1,0 +1,40 @@
+﻿@model IEnumerable<GroupThreeTrailerParkProject.Models.Site>
+
+@{
+    ViewData["Title"] = "Site Catalog";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Site Catalog</h2>
+        <div>
+            <a asp-controller="Site" asp-action="Create" class="btn btn-primary me-2">Create Site</a>
+            <a asp-controller="Site" asp-action="CategoryManage" class="btn btn-secondary">Site Categories</a>
+        </div>
+    </div>
+
+    <div class="row">
+        @foreach (var site in Model)
+        {
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <img src="https://via.placeholder.com/300x200?text=Site"
+                         class="card-img-top"
+                         alt="Site Photo"
+                         style="height: 200px; object-fit: cover;" />
+
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Site @site.SiteId</h5>
+
+                        <a asp-controller="Site"
+                           asp-action="Edit"
+                           asp-route-id="@site.SiteId"
+                           class="btn btn-outline-primary">
+                            Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

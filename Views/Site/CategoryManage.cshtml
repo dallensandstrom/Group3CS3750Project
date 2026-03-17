@@ -1,0 +1,83 @@
+@model GroupThreeTrailerParkProject.Models.SiteCategory
+
+@{
+    ViewData["Title"] = "Manage Site Categories";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4">Manage Site Categories</h2>
+
+    <form asp-action="CategoryManage" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+        <div class="mb-3">
+            <label class="form-label">Existing Categories</label>
+            <select id="existingCategorySelect" class="form-select">
+                <option value="">-- Select Existing Category --</option>
+                @if (ViewBag.Categories != null)
+                {
+                    foreach (var category in ViewBag.Categories)
+                    {
+                        <option value="@category.SiteCategoryId"
+                                data-name="@category.Name"
+                                data-price="@category.Price"
+                                data-week="@category.PricePerWeek"
+                                data-month="@category.PricePerMonth">
+                            @category.Name
+                        </option>
+                    }
+                }
+            </select>
+        </div>
+
+        <input asp-for="SiteCategoryId" type="hidden" />
+
+        <div class="mb-3">
+            <label asp-for="Name" class="form-label"></label>
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Price" class="form-label"></label>
+            <input asp-for="Price" class="form-control" />
+            <span asp-validation-for="Price" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="PricePerWeek" class="form-label"></label>
+            <input asp-for="PricePerWeek" class="form-control" />
+            <span asp-validation-for="PricePerWeek" class="text-danger"></span>
+        </div>
+
+        <div class="mb-4">
+            <label asp-for="PricePerMonth" class="form-label"></label>
+            <input asp-for="PricePerMonth" class="form-control" />
+            <span asp-validation-for="PricePerMonth" class="text-danger"></span>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" name="submitButton" value="Apply" class="btn btn-success">Apply</button>
+            <button type="submit" name="submitButton" value="Delete" class="btn btn-danger">Delete</button>
+            <a asp-action="Index" class="btn btn-secondary">Back</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.getElementById("existingCategorySelect").addEventListener("change", function () {
+            const selected = this.options[this.selectedIndex];
+
+            document.getElementById("SiteCategoryId").value = selected.value || "";
+            document.getElementById("Name").value = selected.dataset.name || "";
+            document.getElementById("Price").value = selected.dataset.price || "";
+            document.getElementById("PricePerWeek").value = selected.dataset.week || "";
+            document.getElementById("PricePerMonth").value = selected.dataset.month || "";
+        });
+    </script>
+}
