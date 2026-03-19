@@ -1,6 +1,6 @@
 namespace GroupThreeTrailerParkProject.Models
 {
-    // Simplified version of UserAccount for displaying user details in the view
+    //Simplified version of UserAccount for displaying user details in the view
     public class UserAccountViewModel
     {
         public string Id { get; set; } = "";
