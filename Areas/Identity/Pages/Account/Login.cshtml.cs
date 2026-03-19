@@ -22,11 +22,13 @@ namespace GroupThreeTrailerParkProject.Areas.Identity.Pages.Account
     {
         private readonly SignInManager<UserAccount> _signInManager;
         private readonly ILogger<LoginModel> _logger;
+        private readonly UserManager<UserAccount> _userManager; //Used to get data on if the account is enabled
 
-        public LoginModel(SignInManager<UserAccount> signInManager, ILogger<LoginModel> logger)
+        public LoginModel(SignInManager<UserAccount> signInManager, ILogger<LoginModel> logger, UserManager<UserAccount> userManager)
         {
             _signInManager = signInManager;
             _logger = logger;
+            _userManager = userManager;
         }
 
         /// <summary>
@@ -110,9 +112,19 @@ namespace GroupThreeTrailerParkProject.Areas.Identity.Pages.Account
 
             if (ModelState.IsValid)
             {
+                //Dallen Addition to allow for account disabling, ChatGPT suggestion
+                var user = await _userManager.FindByEmailAsync(Input.Email);
+                if (user == null | !user.IsEnabled)
+                {
+                    ModelState.AddModelError(string.Empty, "This account is disabled.");
+                    return Page();
+                }
+
+
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
                 var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User logged in.");

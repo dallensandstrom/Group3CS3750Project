@@ -7,7 +7,16 @@
 <ul class="navbar-nav">
 @if (SignInManager.IsSignedIn(User))
 {
-
+    <!--Added admin pages (Dallen)-->
+    if (User.IsInRole("Admin"))
+        {
+            <li class="nav-item">
+                <a class="nav-link text-dark" id="login" asp-area="Identity" asp-page="/Account/RegisterStaff">Register Employee</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-dark" asp-area="" asp-controller="Users" asp-action="Index">View Employee Accounts</a>
+            </li>
+        }
     <li class="nav-item">
         <a id="manage" class="nav-link text-dark" asp-area="Identity" asp-page="" title="Manage">@UserManager.GetUserName(User)</a>
     </li>
@@ -19,16 +28,6 @@
 }
 else
 {
-    <!--Added Placeholder Navication (Dallen)-->
-    <!--Note: Move outside of else  part of if statement once access levels are done-->
-    <li class="nav-item">
-        <a class="nav-link text-dark" id="login" asp-area="Identity" asp-page="">Register Employee</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link text-dark" id="login" asp-area="Identity" asp-page="">View Employee Accounts</a>
-    </li>
-
-
     <li class="nav-item">
         <a class="nav-link text-dark" id="register" asp-area="Identity" asp-page="/Account/Register">Register</a>
     </li>

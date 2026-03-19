@@ -24,7 +24,8 @@ using System.Threading.Tasks;
 
 namespace GroupThreeTrailerParkProject.Areas.Identity.Pages.Account
 {
-    public class RegisterModel : PageModel
+    [Authorize(Roles = "Admin")] //Dallen addition, makes the register staff class only acessable to admins
+    public class RegisterStaffModel : PageModel
     {
         private readonly SignInManager<UserAccount> _signInManager;
         private readonly UserManager<UserAccount> _userManager;
@@ -34,7 +35,7 @@ namespace GroupThreeTrailerParkProject.Areas.Identity.Pages.Account
         private readonly IEmailSender _emailSender;
         private readonly ApplicationDbContext _context; //Dallen addition to get access levels working
 
-        public RegisterModel(
+        public RegisterStaffModel(
             UserManager<UserAccount> userManager,
             IUserStore<UserAccount> userStore,
             SignInManager<UserAccount> signInManager,
@@ -96,13 +97,7 @@ namespace GroupThreeTrailerParkProject.Areas.Identity.Pages.Account
             public string Email { get; set; }
 
             //Dallen addition
-            [Required]
-            [Display(Name = "DOD Affiliation")]
-            public DODAffiliation DODAffiliation { get; set; }
-            //Dallen addition
-            [Required]
-            [Display(Name = "DOD Status")]
-            public DODStatus DODStatus { get; set; }
+            public bool IsAdmin { get; set; } = false;
             //Dallen addition
             [Phone]
             [Required]
@@ -157,8 +152,11 @@ namespace GroupThreeTrailerParkProject.Areas.Identity.Pages.Account
                 if (result.Succeeded)
                 {
                     //ChatGPT Suggestion (Dallen)
-                    //Adds User as guest
+                    var role = Input.IsAdmin ? "Admin" : "Employee";
+                    await _userManager.AddToRoleAsync(user, role);
 
+                    //Adds User as guest
+                    /*
                     await _userManager.AddToRoleAsync(user, "Guest");
 
                     _context.GuestProfiles.Add(new GuestProfile
@@ -167,6 +165,9 @@ namespace GroupThreeTrailerParkProject.Areas.Identity.Pages.Account
                         DODAffiliation = Input.DODAffiliation,
                         DODStatus = Input.DODStatus
                     });
+                    */
+
+
 
                     await _context.SaveChangesAsync();
 

@@ -1,4 +1,10 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Identity
+@using GroupThreeTrailerParkProject.Models
+
+@inject SignInManager<UserAccount> SignInManager
+@inject UserManager<UserAccount> UserManager
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -27,12 +33,18 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
                         -->
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="AdminReservations" asp-action="Index">Admin Reservations</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Site" asp-action="Index">Sites</a>
-                        </li>
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            if (User.IsInRole("Admin") || User.IsInRole("Employee"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="AdminReservations" asp-action="Index">Admin Reservations</a>
+                                </li>
+                            }
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Site" asp-action="Index">Sites</a>
+                            </li>
+                        }
                     </ul>
                     <!--De-Commented (Dallen)-->
                     <partial name="_LoginPartial" />
