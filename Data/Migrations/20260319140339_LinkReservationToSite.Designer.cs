@@ -4,6 +4,7 @@ using GroupThreeTrailerParkProject.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GroupThreeTrailerParkProject.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260319140339_LinkReservationToSite")]
+    partial class LinkReservationToSite
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -321,6 +324,7 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ExtraNotes")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("NumAdults")
@@ -409,7 +413,7 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
             modelBuilder.Entity("Reservation", b =>
                 {
                     b.HasOne("GroupThreeTrailerParkProject.Models.Site", "Site")
-                        .WithMany("Reservations")
+                        .WithMany()
                         .HasForeignKey("SiteId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -419,8 +423,6 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
 
             modelBuilder.Entity("GroupThreeTrailerParkProject.Models.Site", b =>
                 {
-                    b.Navigation("Reservations");
-
                     b.Navigation("SitePhoto");
                 });
 #pragma warning restore 612, 618

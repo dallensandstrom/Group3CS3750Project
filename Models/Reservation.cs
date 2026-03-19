@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using GroupThreeTrailerParkProject.Models;
 
 public class Reservation
 {
@@ -7,7 +8,8 @@ public class Reservation
     public int ReservationID { get; set; }
 
     public int AccountID { get; set; }
-    public int SiteNumber { get; set; }
+    public int SiteId { get; set; }
+    public Site? Site { get; set; }
 
     [DataType(DataType.Date)]
     public DateTime CheckInDate { get; set; }
@@ -29,7 +31,7 @@ public class Reservation
 
     public DateTime DateCreated { get; set; }
 
-    public string ExtraNotes { get; set; }
+    public string? ExtraNotes { get; set; }
 
     public string CustomerName { get; set; }
 }
