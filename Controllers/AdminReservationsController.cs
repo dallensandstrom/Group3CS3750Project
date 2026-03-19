@@ -21,9 +21,20 @@ namespace GroupThreeTrailerParkProject.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString)
         {
-            return View(await _context.Reservations.ToListAsync());
+            var reservations = _context.Reservations
+                .Include(r => r.Site)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                reservations = reservations.Where(r =>
+                    r.CustomerName.Contains(searchString) ||
+                    r.ReservationID.ToString() == searchString);
+            }
+
+            return View(await reservations.ToListAsync());
         }
 
 
@@ -48,19 +59,30 @@ namespace GroupThreeTrailerParkProject.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
+            PopulateSitesDropDownList();
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ReservationID,AccountID,SiteNumber,CheckInDate,CheckOutDate,NumAdults,Pets,BaseCost,TotalCost,Status,DateCreated,ExtraNotes,CustomerName")] Reservation reservation)
+        public async Task<IActionResult> Create(Reservation reservation)
         {
+            reservation.DateCreated = DateTime.Now;
+
+            if (!IsSiteAvailable(reservation.SiteId, reservation.CheckInDate, reservation.CheckOutDate))
+            {
+                ModelState.AddModelError("", "That site is already reserved for those dates.");
+            }
+
             if (ModelState.IsValid)
             {
                 _context.Add(reservation);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+
+            PopulateSitesDropDownList(reservation.SiteId);
+
             return View(reservation);
         }
 
@@ -77,6 +99,7 @@ namespace GroupThreeTrailerParkProject.Controllers
             {
                 return NotFound();
             }
+            PopulateSitesDropDownList(reservation.SiteId);
             return View(reservation);
         }
 
@@ -89,11 +112,16 @@ namespace GroupThreeTrailerParkProject.Controllers
             if (id != reservation.ReservationID)
                 return NotFound();
 
-            if (!IsSiteAvailable(reservation.SiteNumber, reservation.CheckInDate, reservation.CheckOutDate, reservation.ReservationID))
+            if (!IsSiteAvailable(reservation.SiteId, reservation.CheckInDate, reservation.CheckOutDate, reservation.ReservationID))
             {
                 ModelState.AddModelError("", "That site is already reserved for those dates.");
-                return View(reservation);
             }
+
+            var existingReservation = await _context.Reservations
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.ReservationID == id);
+
+            reservation.DateCreated = existingReservation.DateCreated;
 
             if (ModelState.IsValid)
             {
@@ -102,6 +130,7 @@ namespace GroupThreeTrailerParkProject.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            PopulateSitesDropDownList(reservation.SiteId);
             return View(reservation);
         }
 
@@ -144,12 +173,20 @@ namespace GroupThreeTrailerParkProject.Controllers
         private bool IsSiteAvailable(int siteNumber, DateTime checkIn, DateTime checkOut, int? reservationId = null)
         {
             return !_context.Reservations.Any(r =>
-                r.SiteNumber == siteNumber &&
+                r.SiteId == siteNumber &&
                 r.ReservationID != reservationId &&
                 r.Status != "Cancelled" &&
                 checkIn < r.CheckOutDate &&
                 checkOut > r.CheckInDate
             );
+        }
+        private void PopulateSitesDropDownList(object? selectedSite = null)
+        {
+            var sitesQuery = _context.Site
+                .OrderBy(s => s.SiteId)
+                .ToList();
+
+            ViewBag.SiteID = new SelectList(sitesQuery, "SiteId", "SiteId", selectedSite);
         }
     }
 }

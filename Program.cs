@@ -2,7 +2,6 @@ using GroupThreeTrailerParkProject.Data;
 using GroupThreeTrailerParkProject.Models;
 using Microsoft.AspNetCore.Identity; //Added for identificaiton, was on default verion of web app -Dallen
 using Microsoft.EntityFrameworkCore;
-using System.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 

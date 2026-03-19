@@ -19,9 +19,9 @@
                 <span asp-validation-for="AccountID" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="SiteNumber" class="control-label"></label>
-                <input asp-for="SiteNumber" class="form-control" />
-                <span asp-validation-for="SiteNumber" class="text-danger"></span>
+                <label asp-for="SiteId" class="control-label"></label>
+                <select asp-for="SiteId" class="form-control" asp-items="ViewBag.SiteId"></select>
+                <span asp-validation-for="SiteId" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="CheckInDate" class="control-label"></label>
@@ -57,11 +57,6 @@
                 <label asp-for="Status" class="control-label"></label>
                 <input asp-for="Status" class="form-control" />
                 <span asp-validation-for="Status" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="DateCreated" class="control-label"></label>
-                <input asp-for="DateCreated" class="form-control" />
-                <span asp-validation-for="DateCreated" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="ExtraNotes" class="control-label"></label>
