@@ -4,6 +4,7 @@ using GroupThreeTrailerParkProject.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GroupThreeTrailerParkProject.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260319082540_AddUserAccountFields")]
+    partial class AddUserAccountFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -361,6 +364,7 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ExtraNotes")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("NumAdults")
@@ -369,7 +373,7 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
                     b.Property<int>("Pets")
                         .HasColumnType("int");
 
-                    b.Property<int>("SiteId")
+                    b.Property<int>("SiteNumber")
                         .HasColumnType("int");
 
                     b.Property<string>("Status")
@@ -380,8 +384,6 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
                         .HasColumnType("decimal(10,2)");
 
                     b.HasKey("ReservationID");
-
-                    b.HasIndex("SiteId");
 
                     b.ToTable("Reservations");
                 });
@@ -457,21 +459,8 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Reservation", b =>
-                {
-                    b.HasOne("GroupThreeTrailerParkProject.Models.Site", "Site")
-                        .WithMany("Reservations")
-                        .HasForeignKey("SiteId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Site");
-                });
-
             modelBuilder.Entity("GroupThreeTrailerParkProject.Models.Site", b =>
                 {
-                    b.Navigation("Reservations");
-
                     b.Navigation("SitePhoto");
                 });
 #pragma warning restore 612, 618
