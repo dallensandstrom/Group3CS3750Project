@@ -4,6 +4,7 @@ using GroupThreeTrailerParkProject.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GroupThreeTrailerParkProject.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260319070008_AddSiteFees")]
+    partial class AddSiteFees
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -46,41 +49,6 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
                     b.ToTable("Fees");
                 });
 
-            modelBuilder.Entity("GroupThreeTrailerParkProject.Models.Payment", b =>
-                {
-                    b.Property<int>("PaymentID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PaymentID"));
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(10,2)");
-
-                    b.Property<DateTime>("PaymentDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("PaymentType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ReservationID")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("StripePaymentID")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("PaymentID");
-
-                    b.HasIndex("ReservationID");
-
-                    b.ToTable("Payments");
-                });
-
             modelBuilder.Entity("GroupThreeTrailerParkProject.Models.PriceRange", b =>
                 {
                     b.Property<int>("PriceRangeID")
@@ -95,7 +63,7 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(10,2)");
 
-                    b.Property<int>("SiteId")
+                    b.Property<int>("SiteNumber")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("StartDate")
@@ -103,7 +71,7 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
 
                     b.HasKey("PriceRangeID");
 
-                    b.HasIndex("SiteId");
+                    b.HasIndex("SiteNumber");
 
                     b.ToTable("PriceRanges");
                 });
@@ -480,22 +448,11 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
                     b.ToTable("Reservations");
                 });
 
-            modelBuilder.Entity("GroupThreeTrailerParkProject.Models.Payment", b =>
-                {
-                    b.HasOne("Reservation", "Reservation")
-                        .WithMany()
-                        .HasForeignKey("ReservationID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Reservation");
-                });
-
             modelBuilder.Entity("GroupThreeTrailerParkProject.Models.PriceRange", b =>
                 {
                     b.HasOne("GroupThreeTrailerParkProject.Models.Site", "Site")
                         .WithMany()
-                        .HasForeignKey("SiteId")
+                        .HasForeignKey("SiteNumber")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

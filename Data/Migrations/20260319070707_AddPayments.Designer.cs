@@ -4,6 +4,7 @@ using GroupThreeTrailerParkProject.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GroupThreeTrailerParkProject.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260319070707_AddPayments")]
+    partial class AddPayments
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -95,7 +98,7 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(10,2)");
 
-                    b.Property<int>("SiteId")
+                    b.Property<int>("SiteNumber")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("StartDate")
@@ -103,7 +106,7 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
 
                     b.HasKey("PriceRangeID");
 
-                    b.HasIndex("SiteId");
+                    b.HasIndex("SiteNumber");
 
                     b.ToTable("PriceRanges");
                 });
@@ -495,7 +498,7 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
                 {
                     b.HasOne("GroupThreeTrailerParkProject.Models.Site", "Site")
                         .WithMany()
-                        .HasForeignKey("SiteId")
+                        .HasForeignKey("SiteNumber")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
