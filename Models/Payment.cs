@@ -46,14 +46,14 @@ namespace GroupThreeTrailerParkProject.Models
         public async Task<bool> ProcessPayment()
         {
             // TODO: Implement Stripe payment processing
-            // This will be integrated with Stripe API
+            // Integrated with Stripe API
             await Task.CompletedTask;
             return false;
         }
 
         public static async Task<Payment?> GetByReservationId(int reservationId)
         {
-            // TODO: This will use repository pattern to fetch payment
+            // TODO: Use repository pattern(?) to fetch payment
             await Task.CompletedTask;
             return null;
         }

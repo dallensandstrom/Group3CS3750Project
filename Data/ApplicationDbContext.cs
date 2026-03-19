@@ -16,7 +16,6 @@ namespace GroupThreeTrailerParkProject.Data
         public DbSet<SiteCategory> SiteCategory { get; set; } = default!;
 
         public DbSet<SitePhoto> SitePhotos { get; set; } = default!;
-<<<<<<< HEAD
 
         // Business logic models
         public DbSet<Fee> Fees { get; set; } = default!;
@@ -24,8 +23,6 @@ namespace GroupThreeTrailerParkProject.Data
         public DbSet<ReservationFee> ReservationFees { get; set; } = default!;
         public DbSet<SiteFee> SiteFees { get; set; } = default!;
         public DbSet<PriceRange> PriceRanges { get; set; } = default!;
-=======
         public DbSet<GuestProfile> GuestProfiles { get; set; } = default!; //Added GuestProfiles setup -Dallen
->>>>>>> origin/Dallen
     }
 }
