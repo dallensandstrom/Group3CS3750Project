@@ -10,20 +10,58 @@ namespace GroupThreeTrailerParkProject.Models
         public int PaymentID { get; set; }
 
         [ForeignKey("Reservation")]
-        public int ReservationID { get; set; }
+        public int ReservationId { get; set; }
 
         [Column(TypeName = "decimal(10,2)")]
         public decimal Amount { get; set; }
 
+        [DataType(DataType.DateTime)]
         public DateTime PaymentDate { get; set; }
 
-        public string PaymentType { get; set; }
+        [Required]
+        [MaxLength(20)]
+        public string PaymentType { get; set; } = string.Empty;
 
-        public string? StripePaymentID { get; set; }  // nullable
+        [MaxLength(255)]
+        public string? StripePaymentID { get; set; }
 
-        public string Status { get; set; }
+        [Required]
+        [MaxLength(20)]
+        public string Status { get; set; } = "Pending";
 
-        [ValidateNever]
-        public Reservation Reservation { get; set; }
+        // Navigation property
+        public Reservation? Reservation { get; set; }
+
+        // Methods from class diagram
+        public void Create()
+        {
+            PaymentDate = DateTime.Now;
+            Status = "Pending";
+        }
+
+        public bool Verify()
+        {
+            return Amount > 0 && !string.IsNullOrEmpty(PaymentType);
+        }
+
+        public async Task<bool> ProcessPayment()
+        {
+            // TODO: Implement Stripe payment processing
+            // This will be integrated with Stripe API
+            await Task.CompletedTask;
+            return false;
+        }
+
+        public static async Task<Payment?> GetByReservationId(int reservationId)
+        {
+            // TODO: This will use repository pattern to fetch payment
+            await Task.CompletedTask;
+            return null;
+        }
+
+        public Payment()
+        {
+            PaymentDate = DateTime.Now;
+        }
     }
 }

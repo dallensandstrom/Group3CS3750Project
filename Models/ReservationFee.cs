@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -18,10 +17,13 @@ namespace GroupThreeTrailerParkProject.Models
         [Column(TypeName = "decimal(10,2)")]
         public decimal Amount { get; set; }
 
-        [ValidateNever]
-        public Reservation Reservation { get; set; }
+        // Navigation properties
+        public Reservation? Reservation { get; set; }
+        public Fee? Fee { get; set; }
 
-        [ValidateNever]
-        public Fee Fee { get; set; }
+        public ReservationFee()
+        {
+
+        }
     }
 }

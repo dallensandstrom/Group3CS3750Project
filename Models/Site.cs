@@ -18,12 +18,14 @@ namespace GroupThreeTrailerParkProject.Models
         [Column(TypeName = "decimal(10,2)")]
         public decimal DefaultPrice { get; set; }
 
+        // Navigation properties
         public List<SitePhoto> SitePhoto { get; set; } = new();
-        public ICollection<Reservation>? Reservations { get; set; }
+        public List<PriceRange> PriceRanges { get; set; } = new();
+        public List<SiteFee> SiteFees { get; set; } = new();
 
         public Site()
         {
-            
+
         }
     }
 }

@@ -13,12 +13,15 @@ namespace GroupThreeTrailerParkProject.Models
         public int FeeID { get; set; }
 
         [ForeignKey("Site")]
-        public int SiteId { get; set; }
+        public int SiteNumber { get; set; }
 
-        [ValidateNever]
-        public Fee Fee { get; set; }
+        // Navigation properties
+        public Fee? Fee { get; set; }
+        public Site? Site { get; set; }
 
-        [ValidateNever]
-        public Site Site { get; set; }
+        public SiteFee()
+        {
+
+        }
     }
 }
