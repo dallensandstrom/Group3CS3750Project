@@ -1,15 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using GroupThreeTrailerParkProject.Data;
+using GroupThreeTrailerParkProject.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using GroupThreeTrailerParkProject.Data;
-using GroupThreeTrailerParkProject.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace GroupThreeTrailerParkProject.Controllers
 {
+    [Authorize(Roles = "Employee,Admin")]
     public class AdminReservationsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -23,6 +25,8 @@ namespace GroupThreeTrailerParkProject.Controllers
         {
             return View(await _context.Reservations.ToListAsync());
         }
+
+
 
         public async Task<IActionResult> Details(int? id)
         {
@@ -41,6 +45,7 @@ namespace GroupThreeTrailerParkProject.Controllers
             return View(reservation);
         }
 
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             return View();
@@ -59,6 +64,7 @@ namespace GroupThreeTrailerParkProject.Controllers
             return View(reservation);
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -77,6 +83,7 @@ namespace GroupThreeTrailerParkProject.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id, Reservation reservation)
         {
             if (id != reservation.ReservationID)
@@ -98,6 +105,7 @@ namespace GroupThreeTrailerParkProject.Controllers
             return View(reservation);
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)

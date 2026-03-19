@@ -1,13 +1,15 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
+﻿using GroupThreeTrailerParkProject.Data;
+using GroupThreeTrailerParkProject.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using GroupThreeTrailerParkProject.Data;
-using GroupThreeTrailerParkProject.Models;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace GroupThreeTrailerParkProject.Controllers
 {
+    [Authorize(Roles = "Guest,Employee,Admin")]
     public class SiteController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -31,6 +33,7 @@ namespace GroupThreeTrailerParkProject.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(Site site)
         {
             if (ModelState.IsValid)
@@ -44,6 +47,7 @@ namespace GroupThreeTrailerParkProject.Controllers
             return View(site);
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CategoryManage()
         {
             ViewBag.Categories = await _context.SiteCategory.ToListAsync();
@@ -99,6 +103,7 @@ namespace GroupThreeTrailerParkProject.Controllers
             return View(category);
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)

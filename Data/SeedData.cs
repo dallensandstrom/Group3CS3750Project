@@ -1,13 +1,16 @@
 ﻿using GroupThreeTrailerParkProject.Data;
 using GroupThreeTrailerParkProject.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 public static class SeedData
 {
-    public static void Initialize(IServiceProvider serviceProvider)
+    public static async Task InitializeAsync(IServiceProvider serviceProvider)
     {
         using var context = new ApplicationDbContext(
             serviceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>());
+
+        var userManager = serviceProvider.GetRequiredService<UserManager<UserAccount>>();
 
         if (!context.Reservations.Any())
         {
@@ -58,7 +61,7 @@ public static class SeedData
             );
         }
 
-        context.SaveChanges();
+        await context.SaveChangesAsync();
 
         if (!context.Site.Any())
         {
@@ -75,7 +78,7 @@ public static class SeedData
             );
         }
 
-        context.SaveChanges();
+        await context.SaveChangesAsync();
 
         if (!context.SitePhotos.Any())
         {
@@ -90,8 +93,96 @@ public static class SeedData
             );
         }
 
-        context.SaveChanges();
-        
+        await context.SaveChangesAsync();
+
+        //Dallen Addition for seeding user accounts ChatGPT Suggestion
+        await SeedUser(
+            userManager,
+            context,
+            email: "admin@rvpark.com",
+            password: "Password1!",
+            firstName: "Admin",
+            lastName: "User",
+            phoneNumber: "5555550001",
+            role: "Admin");
+
+        await SeedUser(
+            userManager,
+            context,
+            email: "employee@rvpark.com",
+            password: "Password1!",
+            firstName: "Employee",
+            lastName: "User",
+            phoneNumber: "5555550002",
+            role: "Employee");
+
+        await SeedUser(
+            userManager,
+            context,
+            email: "guest@rvpark.com",
+            password: "Password1!",
+            firstName: "Guest",
+            lastName: "User",
+            phoneNumber: "5555550003",
+            role: "Guest",
+            dodAffiliation: DODAffiliation.Other,
+            dodStatus: DODStatus.Retired);
     }
-    
+
+    //Dallen addition SeedUser function
+    private static async Task SeedUser(
+        UserManager<UserAccount> userManager,
+        ApplicationDbContext context,
+        string email,
+        string password,
+        string firstName,
+        string lastName,
+        string phoneNumber,
+        string role,
+        DODAffiliation? dodAffiliation = null,
+        DODStatus? dodStatus = null)
+    {
+        //If the user already exists do nothing
+        var user = await userManager.FindByEmailAsync(email);
+        if (user != null)
+            return;
+
+        //Object for all the user account information
+        user = new UserAccount
+        {
+            UserName = email,
+            Email = email,
+            FirstName = firstName,
+            LastName = lastName,
+            PhoneNumber = phoneNumber,
+            IsEnabled = true,
+            EmailConfirmed = true
+        };
+
+        //Use user object and password to create the user
+        var result = await userManager.CreateAsync(user, password);
+
+        //Throw error if result fails
+        if (!result.Succeeded)
+        {
+            throw new Exception("Failed to create seed user");
+        }
+
+        //Add the role
+        await userManager.AddToRoleAsync(user, role);
+
+        //If the role is guest add the dodAffiliation and dodStatus
+        if (role == "Guest" && dodAffiliation.HasValue && dodStatus.HasValue)
+        {
+            context.GuestProfiles.Add(new GuestProfile
+            {
+                UserAccountID = user.Id,
+                DODAffiliation = dodAffiliation.Value,
+                DODStatus = dodStatus.Value
+            });
+
+            await context.SaveChangesAsync();
+        }
+    }
 }
+    

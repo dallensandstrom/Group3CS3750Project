@@ -1,8 +1,40 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Identity
+@using GroupThreeTrailerParkProject.Models
+
+@inject SignInManager<UserAccount> SignInManager
+@inject UserManager<UserAccount> UserManager
+
+@{
     ViewData["Title"] = "Home Page";
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <h1 class="display-6">Hill Air Force Base Trailer Park</h1>
+    <div class="">
+        @if (SignInManager.IsSignedIn(User))
+        {
+            if (User.IsInRole("Admin"))
+            {
+                <p>You are logged in as an admin</p>
+            }
+            else if (User.IsInRole("Employee"))
+            {
+                <p>You are logged in as an employee</p>
+            }
+            else
+            {
+                <p>
+                    You are logged in<br />
+                    <a asp-area="" asp-controller="Site" asp-action="Index">Create a reservation</a>
+                </p>
+            }
+        }
+        else
+        {
+            <p>
+                To create a reservation please<br />
+                <a id="login" asp-area="Identity" asp-page="/Account/Login">Login</a> or <a id="register" asp-area="Identity" asp-page="/Account/Register">Register</a>
+            </p>
+        }
+    </div>
 </div>
