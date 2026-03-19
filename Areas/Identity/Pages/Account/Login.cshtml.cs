@@ -114,7 +114,7 @@ namespace GroupThreeTrailerParkProject.Areas.Identity.Pages.Account
             {
                 //Dallen Addition to allow for account disabling, ChatGPT suggestion
                 var user = await _userManager.FindByEmailAsync(Input.Email);
-                if (user == null | !user.IsEnabled)
+                if (user == null || !user.IsEnabled)
                 {
                     ModelState.AddModelError(string.Empty, "This account is disabled.");
                     return Page();
