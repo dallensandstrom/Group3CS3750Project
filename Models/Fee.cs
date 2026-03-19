@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -16,6 +17,7 @@ namespace GroupThreeTrailerParkProject.Models
 
         public string AppliesTo { get; set; }
 
+        [ValidateNever]
         public List<ReservationFee> ReservationFees { get; set; } = new();
     }
 }
