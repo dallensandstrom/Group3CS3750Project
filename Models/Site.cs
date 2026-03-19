@@ -19,6 +19,7 @@ namespace GroupThreeTrailerParkProject.Models
         public decimal DefaultPrice { get; set; }
 
         public List<SitePhoto> SitePhoto { get; set; } = new();
+        public ICollection<Reservation>? Reservations { get; set; }
 
         public Site()
         {
