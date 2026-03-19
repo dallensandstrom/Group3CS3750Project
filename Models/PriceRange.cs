@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -10,7 +9,7 @@ namespace GroupThreeTrailerParkProject.Models
         public int PriceRangeID { get; set; }
 
         [ForeignKey("Site")]
-        public int SiteNumber { get; set; }
+        public int SiteId { get; set; }
 
         [DataType(DataType.Date)]
         public DateTime StartDate { get; set; }
