@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace GroupThreeTrailerParkProject.Data.Migrations
+namespace GroupThreeTrailerParkProject.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260319220528_AddUserAccountFields")]
-    partial class AddUserAccountFields
+    [Migration("20260319232712_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -49,6 +49,31 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
                     b.HasKey("FeeID");
 
                     b.ToTable("Fees");
+                });
+
+            modelBuilder.Entity("GroupThreeTrailerParkProject.Models.GuestProfile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DODAffiliation")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DODStatus")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserAccountID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserAccountID");
+
+                    b.ToTable("GuestProfiles");
                 });
 
             modelBuilder.Entity("GroupThreeTrailerParkProject.Models.Payment", b =>
@@ -103,7 +128,7 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(10,2)");
 
-                    b.Property<int>("SiteId")
+                    b.Property<int>("SiteNumber")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("StartDate")
@@ -111,7 +136,7 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
 
                     b.HasKey("PriceRangeID");
 
-                    b.HasIndex("SiteId");
+                    b.HasIndex("SiteNumber");
 
                     b.ToTable("PriceRanges");
                 });
@@ -258,14 +283,14 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
                     b.Property<int>("FeeID")
                         .HasColumnType("int");
 
-                    b.Property<int>("SiteId")
+                    b.Property<int>("SiteNumber")
                         .HasColumnType("int");
 
                     b.HasKey("SiteFeeID");
 
                     b.HasIndex("FeeID");
 
-                    b.HasIndex("SiteId");
+                    b.HasIndex("SiteNumber");
 
                     b.ToTable("SiteFees");
                 });
@@ -290,6 +315,82 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
                     b.HasIndex("SiteId");
 
                     b.ToTable("SitePhotos");
+                });
+
+            modelBuilder.Entity("GroupThreeTrailerParkProject.Models.UserAccount", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
+
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex")
+                        .HasFilter("[NormalizedUserName] IS NOT NULL");
+
+                    b.ToTable("AspNetUsers", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -344,71 +445,6 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
                     b.ToTable("AspNetRoleClaims", (string)null);
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUser", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("AccessFailedCount")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Email")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("LockoutEnabled")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("NormalizedEmail")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("NormalizedUserName")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("PasswordHash")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("SecurityStamp")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("UserName")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("NormalizedEmail")
-                        .HasDatabaseName("EmailIndex");
-
-                    b.HasIndex("NormalizedUserName")
-                        .IsUnique()
-                        .HasDatabaseName("UserNameIndex")
-                        .HasFilter("[NormalizedUserName] IS NOT NULL");
-
-                    b.ToTable("AspNetUsers", (string)null);
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
                     b.Property<int>("Id")
@@ -437,10 +473,12 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("ProviderKey")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("ProviderDisplayName")
                         .HasColumnType("nvarchar(max)");
@@ -477,10 +515,12 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("Name")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("Value")
                         .HasColumnType("nvarchar(max)");
@@ -488,6 +528,17 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("GroupThreeTrailerParkProject.Models.GuestProfile", b =>
+                {
+                    b.HasOne("GroupThreeTrailerParkProject.Models.UserAccount", "UserAccount")
+                        .WithMany()
+                        .HasForeignKey("UserAccountID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("UserAccount");
                 });
 
             modelBuilder.Entity("GroupThreeTrailerParkProject.Models.Payment", b =>
@@ -505,7 +556,7 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
                 {
                     b.HasOne("GroupThreeTrailerParkProject.Models.Site", "Site")
                         .WithMany("PriceRanges")
-                        .HasForeignKey("SiteId")
+                        .HasForeignKey("SiteNumber")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -515,7 +566,7 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
             modelBuilder.Entity("GroupThreeTrailerParkProject.Models.Reservation", b =>
                 {
                     b.HasOne("GroupThreeTrailerParkProject.Models.Site", "Site")
-                        .WithMany()
+                        .WithMany("Reservations")
                         .HasForeignKey("SiteId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -552,7 +603,7 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
 
                     b.HasOne("GroupThreeTrailerParkProject.Models.Site", "Site")
                         .WithMany("SiteFees")
-                        .HasForeignKey("SiteId")
+                        .HasForeignKey("SiteNumber")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -581,7 +632,7 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("GroupThreeTrailerParkProject.Models.UserAccount", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -590,7 +641,7 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("GroupThreeTrailerParkProject.Models.UserAccount", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -605,7 +656,7 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("GroupThreeTrailerParkProject.Models.UserAccount", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -614,7 +665,7 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("GroupThreeTrailerParkProject.Models.UserAccount", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -638,6 +689,8 @@ namespace GroupThreeTrailerParkProject.Data.Migrations
             modelBuilder.Entity("GroupThreeTrailerParkProject.Models.Site", b =>
                 {
                     b.Navigation("PriceRanges");
+
+                    b.Navigation("Reservations");
 
                     b.Navigation("SiteFees");
 

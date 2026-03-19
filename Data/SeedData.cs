@@ -156,7 +156,7 @@ public static class SeedData
                 {
                     AccountID = 1,
                     CustomerName = "John Smith",
-                    SiteId = 12,
+                    SiteId = 1,
                     CheckInDate = DateTime.Today.AddDays(5),
                     CheckOutDate = DateTime.Today.AddDays(10),
                     NumAdults = 2,
@@ -171,7 +171,7 @@ public static class SeedData
                 {
                     AccountID = 2,
                     CustomerName = "Mary Johnson",
-                    SiteId = 7,
+                    SiteId = 1,
                     CheckInDate = DateTime.Today.AddDays(3),
                     CheckOutDate = DateTime.Today.AddDays(6),
                     NumAdults = 4,
