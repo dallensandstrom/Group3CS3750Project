@@ -22,6 +22,32 @@ namespace GroupThreeTrailerParkProject.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("GroupThreeTrailerParkProject.Models.Fee", b =>
+                {
+                    b.Property<int>("FeeID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FeeID"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<string>("AppliesTo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("FeeID");
+
+                    b.ToTable("Fees");
+                });
+
             modelBuilder.Entity("GroupThreeTrailerParkProject.Models.GuestProfile", b =>
                 {
                     b.Property<int>("Id")
@@ -45,6 +71,151 @@ namespace GroupThreeTrailerParkProject.Migrations
                     b.HasIndex("UserAccountID");
 
                     b.ToTable("GuestProfiles");
+                });
+
+            modelBuilder.Entity("GroupThreeTrailerParkProject.Models.Payment", b =>
+                {
+                    b.Property<int>("PaymentID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PaymentID"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<DateTime>("PaymentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PaymentType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("ReservationId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("StripePaymentID")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("PaymentID");
+
+                    b.HasIndex("ReservationId");
+
+                    b.ToTable("Payments");
+                });
+
+            modelBuilder.Entity("GroupThreeTrailerParkProject.Models.PriceRange", b =>
+                {
+                    b.Property<int>("PriceRangeID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PriceRangeID"));
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<int>("SiteNumber")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("PriceRangeID");
+
+                    b.HasIndex("SiteNumber");
+
+                    b.ToTable("PriceRanges");
+                });
+
+            modelBuilder.Entity("GroupThreeTrailerParkProject.Models.Reservation", b =>
+                {
+                    b.Property<int>("ReservationID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReservationID"));
+
+                    b.Property<int>("AccountID")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("BaseCost")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<DateTime>("CheckInDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CheckOutDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CustomerName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ExtraNotes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("NumAdults")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Pets")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SiteId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("TotalCost")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.HasKey("ReservationID");
+
+                    b.HasIndex("SiteId");
+
+                    b.ToTable("Reservations");
+                });
+
+            modelBuilder.Entity("GroupThreeTrailerParkProject.Models.ReservationFee", b =>
+                {
+                    b.Property<int>("ReservationFeeID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReservationFeeID"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<int>("FeeID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReservationID")
+                        .HasColumnType("int");
+
+                    b.HasKey("ReservationFeeID");
+
+                    b.HasIndex("FeeID");
+
+                    b.HasIndex("ReservationID");
+
+                    b.ToTable("ReservationFees");
                 });
 
             modelBuilder.Entity("GroupThreeTrailerParkProject.Models.Site", b =>
@@ -96,6 +267,29 @@ namespace GroupThreeTrailerParkProject.Migrations
                     b.HasKey("SiteCategoryId");
 
                     b.ToTable("SiteCategory");
+                });
+
+            modelBuilder.Entity("GroupThreeTrailerParkProject.Models.SiteFee", b =>
+                {
+                    b.Property<int>("SiteFeeID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SiteFeeID"));
+
+                    b.Property<int>("FeeID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SiteNumber")
+                        .HasColumnType("int");
+
+                    b.HasKey("SiteFeeID");
+
+                    b.HasIndex("FeeID");
+
+                    b.HasIndex("SiteNumber");
+
+                    b.ToTable("SiteFees");
                 });
 
             modelBuilder.Entity("GroupThreeTrailerParkProject.Models.SitePhoto", b =>
@@ -333,59 +527,6 @@ namespace GroupThreeTrailerParkProject.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Reservation", b =>
-                {
-                    b.Property<int>("ReservationID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReservationID"));
-
-                    b.Property<int>("AccountID")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("BaseCost")
-                        .HasColumnType("decimal(10,2)");
-
-                    b.Property<DateTime>("CheckInDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("CheckOutDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CustomerName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("DateCreated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ExtraNotes")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("NumAdults")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Pets")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SiteId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("TotalCost")
-                        .HasColumnType("decimal(10,2)");
-
-                    b.HasKey("ReservationID");
-
-                    b.HasIndex("SiteId");
-
-                    b.ToTable("Reservations");
-                });
-
             modelBuilder.Entity("GroupThreeTrailerParkProject.Models.GuestProfile", b =>
                 {
                     b.HasOne("GroupThreeTrailerParkProject.Models.UserAccount", "UserAccount")
@@ -395,6 +536,77 @@ namespace GroupThreeTrailerParkProject.Migrations
                         .IsRequired();
 
                     b.Navigation("UserAccount");
+                });
+
+            modelBuilder.Entity("GroupThreeTrailerParkProject.Models.Payment", b =>
+                {
+                    b.HasOne("GroupThreeTrailerParkProject.Models.Reservation", "Reservation")
+                        .WithMany("Payments")
+                        .HasForeignKey("ReservationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Reservation");
+                });
+
+            modelBuilder.Entity("GroupThreeTrailerParkProject.Models.PriceRange", b =>
+                {
+                    b.HasOne("GroupThreeTrailerParkProject.Models.Site", "Site")
+                        .WithMany("PriceRanges")
+                        .HasForeignKey("SiteNumber")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Site");
+                });
+
+            modelBuilder.Entity("GroupThreeTrailerParkProject.Models.Reservation", b =>
+                {
+                    b.HasOne("GroupThreeTrailerParkProject.Models.Site", "Site")
+                        .WithMany("Reservations")
+                        .HasForeignKey("SiteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Site");
+                });
+
+            modelBuilder.Entity("GroupThreeTrailerParkProject.Models.ReservationFee", b =>
+                {
+                    b.HasOne("GroupThreeTrailerParkProject.Models.Fee", "Fee")
+                        .WithMany("ReservationFees")
+                        .HasForeignKey("FeeID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("GroupThreeTrailerParkProject.Models.Reservation", "Reservation")
+                        .WithMany("ReservationFees")
+                        .HasForeignKey("ReservationID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Fee");
+
+                    b.Navigation("Reservation");
+                });
+
+            modelBuilder.Entity("GroupThreeTrailerParkProject.Models.SiteFee", b =>
+                {
+                    b.HasOne("GroupThreeTrailerParkProject.Models.Fee", "Fee")
+                        .WithMany("SiteFees")
+                        .HasForeignKey("FeeID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("GroupThreeTrailerParkProject.Models.Site", "Site")
+                        .WithMany("SiteFees")
+                        .HasForeignKey("SiteNumber")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Fee");
+
+                    b.Navigation("Site");
                 });
 
             modelBuilder.Entity("GroupThreeTrailerParkProject.Models.SitePhoto", b =>
@@ -457,20 +669,27 @@ namespace GroupThreeTrailerParkProject.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Reservation", b =>
+            modelBuilder.Entity("GroupThreeTrailerParkProject.Models.Fee", b =>
                 {
-                    b.HasOne("GroupThreeTrailerParkProject.Models.Site", "Site")
-                        .WithMany("Reservations")
-                        .HasForeignKey("SiteId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Navigation("ReservationFees");
 
-                    b.Navigation("Site");
+                    b.Navigation("SiteFees");
+                });
+
+            modelBuilder.Entity("GroupThreeTrailerParkProject.Models.Reservation", b =>
+                {
+                    b.Navigation("Payments");
+
+                    b.Navigation("ReservationFees");
                 });
 
             modelBuilder.Entity("GroupThreeTrailerParkProject.Models.Site", b =>
                 {
+                    b.Navigation("PriceRanges");
+
                     b.Navigation("Reservations");
+
+                    b.Navigation("SiteFees");
 
                     b.Navigation("SitePhoto");
                 });

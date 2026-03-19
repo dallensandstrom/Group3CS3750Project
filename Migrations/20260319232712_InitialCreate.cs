@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace GroupThreeTrailerParkProject.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigration : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -51,6 +51,21 @@ namespace GroupThreeTrailerParkProject.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Fees",
+                columns: table => new
+                {
+                    FeeID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Amount = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    AppliesTo = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Fees", x => x.FeeID);
                 });
 
             migrationBuilder.CreateTable(
@@ -213,6 +228,28 @@ namespace GroupThreeTrailerParkProject.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "PriceRanges",
+                columns: table => new
+                {
+                    PriceRangeID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    SiteNumber = table.Column<int>(type: "int", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Price = table.Column<decimal>(type: "decimal(10,2)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PriceRanges", x => x.PriceRangeID);
+                    table.ForeignKey(
+                        name: "FK_PriceRanges_Site_SiteNumber",
+                        column: x => x.SiteNumber,
+                        principalTable: "Site",
+                        principalColumn: "SiteId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Reservations",
                 columns: table => new
                 {
@@ -228,7 +265,7 @@ namespace GroupThreeTrailerParkProject.Migrations
                     TotalCost = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ExtraNotes = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ExtraNotes = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CustomerName = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
@@ -237,6 +274,32 @@ namespace GroupThreeTrailerParkProject.Migrations
                     table.ForeignKey(
                         name: "FK_Reservations_Site_SiteId",
                         column: x => x.SiteId,
+                        principalTable: "Site",
+                        principalColumn: "SiteId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SiteFees",
+                columns: table => new
+                {
+                    SiteFeeID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    FeeID = table.Column<int>(type: "int", nullable: false),
+                    SiteNumber = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SiteFees", x => x.SiteFeeID);
+                    table.ForeignKey(
+                        name: "FK_SiteFees_Fees_FeeID",
+                        column: x => x.FeeID,
+                        principalTable: "Fees",
+                        principalColumn: "FeeID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_SiteFees_Site_SiteNumber",
+                        column: x => x.SiteNumber,
                         principalTable: "Site",
                         principalColumn: "SiteId",
                         onDelete: ReferentialAction.Cascade);
@@ -259,6 +322,57 @@ namespace GroupThreeTrailerParkProject.Migrations
                         column: x => x.SiteId,
                         principalTable: "Site",
                         principalColumn: "SiteId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Payments",
+                columns: table => new
+                {
+                    PaymentID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ReservationId = table.Column<int>(type: "int", nullable: false),
+                    Amount = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    PaymentDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    PaymentType = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    StripePaymentID = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Payments", x => x.PaymentID);
+                    table.ForeignKey(
+                        name: "FK_Payments_Reservations_ReservationId",
+                        column: x => x.ReservationId,
+                        principalTable: "Reservations",
+                        principalColumn: "ReservationID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ReservationFees",
+                columns: table => new
+                {
+                    ReservationFeeID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ReservationID = table.Column<int>(type: "int", nullable: false),
+                    FeeID = table.Column<int>(type: "int", nullable: false),
+                    Amount = table.Column<decimal>(type: "decimal(10,2)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ReservationFees", x => x.ReservationFeeID);
+                    table.ForeignKey(
+                        name: "FK_ReservationFees_Fees_FeeID",
+                        column: x => x.FeeID,
+                        principalTable: "Fees",
+                        principalColumn: "FeeID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ReservationFees_Reservations_ReservationID",
+                        column: x => x.ReservationID,
+                        principalTable: "Reservations",
+                        principalColumn: "ReservationID",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -307,9 +421,39 @@ namespace GroupThreeTrailerParkProject.Migrations
                 column: "UserAccountID");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Payments_ReservationId",
+                table: "Payments",
+                column: "ReservationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PriceRanges_SiteNumber",
+                table: "PriceRanges",
+                column: "SiteNumber");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReservationFees_FeeID",
+                table: "ReservationFees",
+                column: "FeeID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReservationFees_ReservationID",
+                table: "ReservationFees",
+                column: "ReservationID");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Reservations_SiteId",
                 table: "Reservations",
                 column: "SiteId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SiteFees_FeeID",
+                table: "SiteFees",
+                column: "FeeID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SiteFees_SiteNumber",
+                table: "SiteFees",
+                column: "SiteNumber");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SitePhotos_SiteId",
@@ -339,10 +483,19 @@ namespace GroupThreeTrailerParkProject.Migrations
                 name: "GuestProfiles");
 
             migrationBuilder.DropTable(
-                name: "Reservations");
+                name: "Payments");
+
+            migrationBuilder.DropTable(
+                name: "PriceRanges");
+
+            migrationBuilder.DropTable(
+                name: "ReservationFees");
 
             migrationBuilder.DropTable(
                 name: "SiteCategory");
+
+            migrationBuilder.DropTable(
+                name: "SiteFees");
 
             migrationBuilder.DropTable(
                 name: "SitePhotos");
@@ -352,6 +505,12 @@ namespace GroupThreeTrailerParkProject.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "Reservations");
+
+            migrationBuilder.DropTable(
+                name: "Fees");
 
             migrationBuilder.DropTable(
                 name: "Site");
