@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace GroupThreeTrailerParkProject.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class UpdateForeignKey : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -233,7 +233,7 @@ namespace GroupThreeTrailerParkProject.Migrations
                 {
                     PriceRangeID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    SiteNumber = table.Column<int>(type: "int", nullable: false),
+                    SiteId = table.Column<int>(type: "int", nullable: false),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Price = table.Column<decimal>(type: "decimal(10,2)", nullable: false)
@@ -242,8 +242,8 @@ namespace GroupThreeTrailerParkProject.Migrations
                 {
                     table.PrimaryKey("PK_PriceRanges", x => x.PriceRangeID);
                     table.ForeignKey(
-                        name: "FK_PriceRanges_Site_SiteNumber",
-                        column: x => x.SiteNumber,
+                        name: "FK_PriceRanges_Site_SiteId",
+                        column: x => x.SiteId,
                         principalTable: "Site",
                         principalColumn: "SiteId",
                         onDelete: ReferentialAction.Cascade);
@@ -286,7 +286,7 @@ namespace GroupThreeTrailerParkProject.Migrations
                     SiteFeeID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     FeeID = table.Column<int>(type: "int", nullable: false),
-                    SiteNumber = table.Column<int>(type: "int", nullable: false)
+                    SiteId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -298,8 +298,8 @@ namespace GroupThreeTrailerParkProject.Migrations
                         principalColumn: "FeeID",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_SiteFees_Site_SiteNumber",
-                        column: x => x.SiteNumber,
+                        name: "FK_SiteFees_Site_SiteId",
+                        column: x => x.SiteId,
                         principalTable: "Site",
                         principalColumn: "SiteId",
                         onDelete: ReferentialAction.Cascade);
@@ -426,9 +426,9 @@ namespace GroupThreeTrailerParkProject.Migrations
                 column: "ReservationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PriceRanges_SiteNumber",
+                name: "IX_PriceRanges_SiteId",
                 table: "PriceRanges",
-                column: "SiteNumber");
+                column: "SiteId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ReservationFees_FeeID",
@@ -451,9 +451,9 @@ namespace GroupThreeTrailerParkProject.Migrations
                 column: "FeeID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SiteFees_SiteNumber",
+                name: "IX_SiteFees_SiteId",
                 table: "SiteFees",
-                column: "SiteNumber");
+                column: "SiteId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SitePhotos_SiteId",

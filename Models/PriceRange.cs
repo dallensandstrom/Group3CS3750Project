@@ -10,7 +10,7 @@ namespace GroupThreeTrailerParkProject.Models
         public int PriceRangeID { get; set; }
 
         [ForeignKey("Site")]
-        public int SiteNumber { get; set; }
+        public int SiteId { get; set; }
 
         [DataType(DataType.Date)]
         public DateTime StartDate { get; set; }

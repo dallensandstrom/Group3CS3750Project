@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GroupThreeTrailerParkProject.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260319232712_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260320062318_UpdateForeignKey")]
+    partial class UpdateForeignKey
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -128,7 +128,7 @@ namespace GroupThreeTrailerParkProject.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(10,2)");
 
-                    b.Property<int>("SiteNumber")
+                    b.Property<int>("SiteId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("StartDate")
@@ -136,7 +136,7 @@ namespace GroupThreeTrailerParkProject.Migrations
 
                     b.HasKey("PriceRangeID");
 
-                    b.HasIndex("SiteNumber");
+                    b.HasIndex("SiteId");
 
                     b.ToTable("PriceRanges");
                 });
@@ -283,14 +283,14 @@ namespace GroupThreeTrailerParkProject.Migrations
                     b.Property<int>("FeeID")
                         .HasColumnType("int");
 
-                    b.Property<int>("SiteNumber")
+                    b.Property<int>("SiteId")
                         .HasColumnType("int");
 
                     b.HasKey("SiteFeeID");
 
                     b.HasIndex("FeeID");
 
-                    b.HasIndex("SiteNumber");
+                    b.HasIndex("SiteId");
 
                     b.ToTable("SiteFees");
                 });
@@ -556,7 +556,7 @@ namespace GroupThreeTrailerParkProject.Migrations
                 {
                     b.HasOne("GroupThreeTrailerParkProject.Models.Site", "Site")
                         .WithMany("PriceRanges")
-                        .HasForeignKey("SiteNumber")
+                        .HasForeignKey("SiteId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -603,7 +603,7 @@ namespace GroupThreeTrailerParkProject.Migrations
 
                     b.HasOne("GroupThreeTrailerParkProject.Models.Site", "Site")
                         .WithMany("SiteFees")
-                        .HasForeignKey("SiteNumber")
+                        .HasForeignKey("SiteId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
