@@ -24,16 +24,16 @@ namespace GroupThreeTrailerParkProject.Models
         public int Pets { get; set; }
 
         [Column(TypeName = "decimal(10,2)")]
-        public decimal BaseCost { get; set; }
+        public decimal? BaseCost { get; set; }
 
         [Column(TypeName = "decimal(10,2)")]
-        public decimal TotalCost { get; set; }
+        public decimal? TotalCost { get; set; }
 
         public string Status { get; set; } = string.Empty;
 
         public DateTime DateCreated { get; set; }
 
-        public string ExtraNotes { get; set; } = string.Empty;
+        public string? ExtraNotes { get; set; } = string.Empty;
 
         public string CustomerName { get; set; } = string.Empty;
 

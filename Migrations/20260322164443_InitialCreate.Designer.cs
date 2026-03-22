@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GroupThreeTrailerParkProject.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260320062318_UpdateForeignKey")]
-    partial class UpdateForeignKey
+    [Migration("20260322164443_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -41,10 +41,16 @@ namespace GroupThreeTrailerParkProject.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("FeeID");
 
@@ -128,7 +134,7 @@ namespace GroupThreeTrailerParkProject.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(10,2)");
 
-                    b.Property<int>("SiteId")
+                    b.Property<int>("SiteCategoryId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("StartDate")
@@ -136,7 +142,7 @@ namespace GroupThreeTrailerParkProject.Migrations
 
                     b.HasKey("PriceRangeID");
 
-                    b.HasIndex("SiteId");
+                    b.HasIndex("SiteCategoryId");
 
                     b.ToTable("PriceRanges");
                 });
@@ -152,7 +158,7 @@ namespace GroupThreeTrailerParkProject.Migrations
                     b.Property<int>("AccountID")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("BaseCost")
+                    b.Property<decimal?>("BaseCost")
                         .HasColumnType("decimal(10,2)");
 
                     b.Property<DateTime>("CheckInDate")
@@ -169,7 +175,6 @@ namespace GroupThreeTrailerParkProject.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ExtraNotes")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("NumAdults")
@@ -185,7 +190,7 @@ namespace GroupThreeTrailerParkProject.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("TotalCost")
+                    b.Property<decimal?>("TotalCost")
                         .HasColumnType("decimal(10,2)");
 
                     b.HasKey("ReservationID");
@@ -229,9 +234,6 @@ namespace GroupThreeTrailerParkProject.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SiteId"));
 
-                    b.Property<decimal>("DefaultPrice")
-                        .HasColumnType("decimal(10,2)");
-
                     b.Property<int>("MaxVehicleSize")
                         .HasColumnType("int");
 
@@ -242,6 +244,8 @@ namespace GroupThreeTrailerParkProject.Migrations
                         .HasColumnType("bit");
 
                     b.HasKey("SiteId");
+
+                    b.HasIndex("SiteCategoryId");
 
                     b.ToTable("Site");
                 });
@@ -257,15 +261,6 @@ namespace GroupThreeTrailerParkProject.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(10,2)");
-
-                    b.Property<decimal>("PricePerMonth")
-                        .HasColumnType("decimal(10,2)");
-
-                    b.Property<decimal>("PricePerWeek")
-                        .HasColumnType("decimal(10,2)");
 
                     b.HasKey("SiteCategoryId");
 
@@ -554,13 +549,13 @@ namespace GroupThreeTrailerParkProject.Migrations
 
             modelBuilder.Entity("GroupThreeTrailerParkProject.Models.PriceRange", b =>
                 {
-                    b.HasOne("GroupThreeTrailerParkProject.Models.Site", "Site")
+                    b.HasOne("GroupThreeTrailerParkProject.Models.SiteCategory", "SiteCategory")
                         .WithMany("PriceRanges")
-                        .HasForeignKey("SiteId")
+                        .HasForeignKey("SiteCategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Site");
+                    b.Navigation("SiteCategory");
                 });
 
             modelBuilder.Entity("GroupThreeTrailerParkProject.Models.Reservation", b =>
@@ -591,6 +586,17 @@ namespace GroupThreeTrailerParkProject.Migrations
                     b.Navigation("Fee");
 
                     b.Navigation("Reservation");
+                });
+
+            modelBuilder.Entity("GroupThreeTrailerParkProject.Models.Site", b =>
+                {
+                    b.HasOne("GroupThreeTrailerParkProject.Models.SiteCategory", "SiteCategory")
+                        .WithMany()
+                        .HasForeignKey("SiteCategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SiteCategory");
                 });
 
             modelBuilder.Entity("GroupThreeTrailerParkProject.Models.SiteFee", b =>
@@ -688,13 +694,16 @@ namespace GroupThreeTrailerParkProject.Migrations
 
             modelBuilder.Entity("GroupThreeTrailerParkProject.Models.Site", b =>
                 {
-                    b.Navigation("PriceRanges");
-
                     b.Navigation("Reservations");
 
                     b.Navigation("SiteFees");
 
                     b.Navigation("SitePhoto");
+                });
+
+            modelBuilder.Entity("GroupThreeTrailerParkProject.Models.SiteCategory", b =>
+                {
+                    b.Navigation("PriceRanges");
                 });
 #pragma warning restore 612, 618
         }

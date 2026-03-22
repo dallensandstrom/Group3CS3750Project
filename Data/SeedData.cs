@@ -110,6 +110,78 @@ await context.SaveChangesAsync();
             role: "Guest",
             dodAffiliation: DODAffiliation.Other,
             dodStatus: DODStatus.Retired);
+
+        if (!context.Reservations.Any())
+        {
+            context.Reservations.AddRange(
+                new Reservation
+                {
+                    AccountID = 1,
+                    CustomerName = "John Smith",
+                    SiteId = 1,
+                    CheckInDate = DateTime.Today.AddDays(5),
+                    CheckOutDate = DateTime.Today.AddDays(10),
+                    NumAdults = 2,
+                    Pets = 1,
+                    BaseCost = 200,
+                    TotalCost = 200,
+                    Status = "Confirmed",
+                    DateCreated = DateTime.Now,
+                    ExtraNotes = "Late arrival"
+                },
+                new Reservation
+                {
+                    AccountID = 2,
+                    CustomerName = "Mary Johnson",
+                    SiteId = 1,
+                    CheckInDate = DateTime.Today.AddDays(3),
+                    CheckOutDate = DateTime.Today.AddDays(6),
+                    NumAdults = 4,
+                    Pets = 0,
+                    BaseCost = 150,
+                    TotalCost = 150,
+                    Status = "Confirmed",
+                    DateCreated = DateTime.Now,
+                    ExtraNotes = ""
+                }
+            );
+            context.SaveChanges();
+        }
+
+        if (!context.Fees.Any(f => f.Name == "Independence Day Fee"))
+        {
+            context.Fees.Add(
+                new Fee
+                {
+                    Name = "Independence Day Fee",
+                    Amount = 15.00m,
+                    AppliesTo = "Site",
+                    StartDate = new DateTime(2026, 7, 4),
+                    EndDate = new DateTime(2026, 7, 4)
+                }
+            );
+
+            context.SaveChanges();
+        }
+        //Currently required to link a fee to a site logic needs to be added elsewhere
+        if (!context.SiteFees.Any(sf => sf.SiteId == 1 && sf.Fee.Name == "Independence Day Fee"))
+        {
+            var site1 = context.Site.FirstOrDefault(s => s.SiteId == 1);
+            var july4Fee = context.Fees.FirstOrDefault(f => f.Name == "Independence Day Fee");
+
+            if (site1 != null && july4Fee != null)
+            {
+                context.SiteFees.Add(
+                    new SiteFee
+                    {
+                        SiteId = site1.SiteId,
+                        FeeID = july4Fee.FeeID
+                    }
+                );
+
+                context.SaveChanges();
+            }
+        }
     }
 
     //Dallen addition SeedUser function
@@ -166,41 +238,7 @@ await context.SaveChangesAsync();
 
             await context.SaveChangesAsync();
         }
-        if (!context.Reservations.Any())
-        {
-            context.Reservations.AddRange(
-                new Reservation
-                {
-                    AccountID = 1,
-                    CustomerName = "John Smith",
-                    SiteId = 1,
-                    CheckInDate = DateTime.Today.AddDays(5),
-                    CheckOutDate = DateTime.Today.AddDays(10),
-                    NumAdults = 2,
-                    Pets = 1,
-                    BaseCost = 200,
-                    TotalCost = 200,
-                    Status = "Confirmed",
-                    DateCreated = DateTime.Now,
-                    ExtraNotes = "Late arrival"
-                },
-                new Reservation
-                {
-                    AccountID = 2,
-                    CustomerName = "Mary Johnson",
-                    SiteId = 1,
-                    CheckInDate = DateTime.Today.AddDays(3),
-                    CheckOutDate = DateTime.Today.AddDays(6),
-                    NumAdults = 4,
-                    Pets = 0,
-                    BaseCost = 150,
-                    TotalCost = 150,
-                    Status = "Confirmed",
-                    DateCreated = DateTime.Now,
-                    ExtraNotes = ""
-                }
-            );
-        }
+       
     }
 }
     
