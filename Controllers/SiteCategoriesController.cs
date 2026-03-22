@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -21,10 +22,38 @@ namespace GroupThreeTrailerParkProject.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var sites = await _context.Site.ToListAsync();
+            var sites = await _context.Site
+                .Include(s => s.SiteCategory)
+                .ToListAsync();
+
             return View(sites);
         }
 
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var site = await _context.Site
+                .Include(s => s.SiteCategory)
+                    .ThenInclude(c => c.PriceRanges)
+                .FirstOrDefaultAsync(s => s.SiteId == id);
+
+            if (site == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.Photos = await _context.SitePhotos
+                .Where(p => p.SiteId == site.SiteId)
+                .ToListAsync();
+
+            return View(site);
+        }
+
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             ViewBag.SiteCategoryId = new SelectList(_context.SiteCategory, "SiteCategoryId", "Name");
@@ -50,25 +79,40 @@ namespace GroupThreeTrailerParkProject.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CategoryManage()
         {
-            ViewBag.Categories = await _context.SiteCategory.ToListAsync();
+            ViewBag.Categories = await _context.SiteCategory
+                .Include(c => c.PriceRanges)
+                .ToListAsync();
 
             return View(new SiteCategory
             {
-                Name = string.Empty
+                Name = string.Empty,
+                PriceRanges = new List<PriceRange>
+                {
+                    new PriceRange()
+                }
             });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CategoryManage(SiteCategory category, string submitButton)
         {
             if (submitButton == "Delete")
             {
                 if (category.SiteCategoryId != 0)
                 {
-                    var existingCategory = await _context.SiteCategory.FindAsync(category.SiteCategoryId);
+                    var existingCategory = await _context.SiteCategory
+                        .Include(c => c.PriceRanges)
+                        .FirstOrDefaultAsync(c => c.SiteCategoryId == category.SiteCategoryId);
+
                     if (existingCategory != null)
                     {
+                        if (existingCategory.PriceRanges.Any())
+                        {
+                            _context.PriceRanges.RemoveRange(existingCategory.PriceRanges);
+                        }
+
                         _context.SiteCategory.Remove(existingCategory);
                         await _context.SaveChangesAsync();
                     }
@@ -79,27 +123,82 @@ namespace GroupThreeTrailerParkProject.Controllers
 
             if (submitButton == "Apply")
             {
-                if (category.SiteCategoryId == 0)
+                if (category.PriceRanges == null)
                 {
-                    _context.SiteCategory.Add(category);
+                    category.PriceRanges = new List<PriceRange>();
                 }
-                else
+
+                category.PriceRanges = category.PriceRanges
+                    .Where(pr => pr != null)
+                    .Where(pr => pr.Price > 0 || pr.StartDate != default || pr.EndDate.HasValue)
+                    .ToList();
+
+                if (!category.PriceRanges.Any())
                 {
-                    var existingCategory = await _context.SiteCategory.FindAsync(category.SiteCategoryId);
-                    if (existingCategory != null)
+                    ModelState.AddModelError("", "At least one price range is required.");
+                }
+
+                foreach (var priceRange in category.PriceRanges)
+                {
+                    if (priceRange.EndDate.HasValue && priceRange.EndDate.Value < priceRange.StartDate)
                     {
-                        existingCategory.Name = category.Name;
-                        existingCategory.Price = category.Price;
-                        existingCategory.PricePerWeek = category.PricePerWeek;
-                        existingCategory.PricePerMonth = category.PricePerMonth;
+                        ModelState.AddModelError("", "End date cannot be earlier than start date.");
+                        break;
                     }
                 }
 
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(CategoryManage));
+                if (ModelState.IsValid)
+                {
+                    if (category.SiteCategoryId == 0)
+                    {
+                        _context.SiteCategory.Add(category);
+                    }
+                    else
+                    {
+                        var existingCategory = await _context.SiteCategory
+                            .Include(c => c.PriceRanges)
+                            .FirstOrDefaultAsync(c => c.SiteCategoryId == category.SiteCategoryId);
+
+                        if (existingCategory == null)
+                        {
+                            return NotFound();
+                        }
+
+                        existingCategory.Name = category.Name;
+
+                        if (existingCategory.PriceRanges.Any())
+                        {
+                            _context.PriceRanges.RemoveRange(existingCategory.PriceRanges);
+                        }
+
+                        existingCategory.PriceRanges = category.PriceRanges
+                            .Select(pr => new PriceRange
+                            {
+                                SiteCategoryId = existingCategory.SiteCategoryId,
+                                Price = pr.Price,
+                                StartDate = pr.StartDate,
+                                EndDate = pr.EndDate
+                            })
+                            .ToList();
+                    }
+
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(CategoryManage));
+                }
             }
 
-            ViewBag.Categories = await _context.SiteCategory.ToListAsync();
+            ViewBag.Categories = await _context.SiteCategory
+                .Include(c => c.PriceRanges)
+                .ToListAsync();
+
+            if (category.PriceRanges == null || !category.PriceRanges.Any())
+            {
+                category.PriceRanges = new List<PriceRange>
+                {
+                    new PriceRange()
+                };
+            }
+
             return View(category);
         }
 
@@ -128,6 +227,7 @@ namespace GroupThreeTrailerParkProject.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id, Site site, string submitButton, string NewPhotoUrl)
         {
             if (id != site.SiteId)
@@ -169,7 +269,6 @@ namespace GroupThreeTrailerParkProject.Controllers
                     existingSite.SiteCategoryId = site.SiteCategoryId;
                     existingSite.MaxVehicleSize = site.MaxVehicleSize;
                     existingSite.VisibleToClient = site.VisibleToClient;
-                    existingSite.DefaultPrice = site.DefaultPrice;
 
                     if (!string.IsNullOrWhiteSpace(NewPhotoUrl))
                     {

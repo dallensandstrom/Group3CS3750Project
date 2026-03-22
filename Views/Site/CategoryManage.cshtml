@@ -13,16 +13,31 @@
         <div class="mb-3">
             <label class="form-label">Existing Categories</label>
             <select id="existingCategorySelect" class="form-select">
-                <option value="">-- Select Existing Category --</option>
+                <option value="0">-- Create New Category --</option>
                 @if (ViewBag.Categories != null)
                 {
                     foreach (var category in ViewBag.Categories)
                     {
+                        var ranges = category.PriceRanges as IEnumerable<GroupThreeTrailerParkProject.Models.PriceRange>;
+                        var serializedRanges = "[]";
+
+                        if (ranges != null)
+                        {
+                            serializedRanges = System.Text.Json.JsonSerializer.Serialize(
+                                ranges.Select(r => new
+                                {
+                                    priceRangeID = r.PriceRangeID,
+                                    siteCategoryId = r.SiteCategoryId,
+                                    price = r.Price,
+                                    startDate = r.StartDate.ToString("yyyy-MM-dd"),
+                                    endDate = r.EndDate.HasValue ? r.EndDate.Value.ToString("yyyy-MM-dd") : ""
+                                })
+                            );
+                        }
+
                         <option value="@category.SiteCategoryId"
                                 data-name="@category.Name"
-                                data-price="@category.Price"
-                                data-week="@category.PricePerWeek"
-                                data-month="@category.PricePerMonth">
+                                data-ranges='@serializedRanges'>
                             @category.Name
                         </option>
                     }
@@ -38,25 +53,65 @@
             <span asp-validation-for="Name" class="text-danger"></span>
         </div>
 
-        <div class="mb-3">
-            <label asp-for="Price" class="form-label"></label>
-            <input asp-for="Price" class="form-control" />
-            <span asp-validation-for="Price" class="text-danger"></span>
+        <hr class="my-4" />
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0">Pricing Periods</h4>
+            <button type="button" id="addPriceRangeBtn" class="btn btn-outline-primary btn-sm">
+                Add Price Range
+            </button>
         </div>
 
-        <div class="mb-3">
-            <label asp-for="PricePerWeek" class="form-label"></label>
-            <input asp-for="PricePerWeek" class="form-control" />
-            <span asp-validation-for="PricePerWeek" class="text-danger"></span>
+        <div id="priceRangesContainer">
+            @if (Model.PriceRanges != null && Model.PriceRanges.Any())
+            {
+                for (int i = 0; i < Model.PriceRanges.Count; i++)
+                {
+                    <div class="card shadow-sm mb-3 price-range-row">
+                        <div class="card-body">
+                            <input type="hidden" name="PriceRanges[@i].PriceRangeID" value="@Model.PriceRanges[i].PriceRangeID" />
+                            <input type="hidden" name="PriceRanges[@i].SiteCategoryId" value="@Model.PriceRanges[i].SiteCategoryId" />
+
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-3">
+                                    <label class="form-label">Price</label>
+                                    <input name="PriceRanges[@i].Price" value="@Model.PriceRanges[i].Price" class="form-control" type="number" step="0.01" min="0" />
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Start Date</label>
+                                    <input name="PriceRanges[@i].StartDate"
+                                           value="@(Model.PriceRanges[i].StartDate == default ? "" : Model.PriceRanges[i].StartDate.ToString("yyyy-MM-dd"))"
+                                           class="form-control"
+                                           type="date" />
+                                </div>
+
+                                <div class="col-md-3 end-date-col">
+                                    <label class="form-label">End Date</label>
+                                    <input name="PriceRanges[@i].EndDate"
+                                           value="@(Model.PriceRanges[i].EndDate.HasValue ? Model.PriceRanges[i].EndDate.Value.ToString("yyyy-MM-dd") : "")"
+                                           class="form-control end-date-input"
+                                           type="date" />
+                                </div>
+
+                                <div class="col-md-2">
+                                    <div class="form-check mt-4">
+                                        <input class="form-check-input no-end-date-checkbox" type="checkbox" @(Model.PriceRanges[i].EndDate.HasValue ? "" : "checked") />
+                                        <label class="form-check-label">No end date</label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-1">
+                                    <button type="button" class="btn btn-outline-danger remove-price-range-btn">X</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
         </div>
 
-        <div class="mb-4">
-            <label asp-for="PricePerMonth" class="form-label"></label>
-            <input asp-for="PricePerMonth" class="form-control" />
-            <span asp-validation-for="PricePerMonth" class="text-danger"></span>
-        </div>
-
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 mt-4">
             <button type="submit" name="submitButton" value="Apply" class="btn btn-success">Apply</button>
             <button type="submit" name="submitButton" value="Delete" class="btn btn-danger">Delete</button>
             <a asp-action="Index" class="btn btn-secondary">Back</a>
@@ -70,14 +125,135 @@
     }
 
     <script>
-        document.getElementById("existingCategorySelect").addEventListener("change", function () {
-            const selected = this.options[this.selectedIndex];
+        const categorySelect = document.getElementById("existingCategorySelect");
+        const categoryIdInput = document.getElementById("SiteCategoryId");
+        const nameInput = document.getElementById("Name");
+        const priceRangesContainer = document.getElementById("priceRangesContainer");
+        const addPriceRangeBtn = document.getElementById("addPriceRangeBtn");
 
-            document.getElementById("SiteCategoryId").value = selected.value || "";
-            document.getElementById("Name").value = selected.dataset.name || "";
-            document.getElementById("Price").value = selected.dataset.price || "";
-            document.getElementById("PricePerWeek").value = selected.dataset.week || "";
-            document.getElementById("PricePerMonth").value = selected.dataset.month || "";
+        function buildPriceRangeRow(index, price = "", startDate = "", endDate = "") {
+            const noEndDateChecked = !endDate ? "checked" : "";
+            const endDateStyle = !endDate ? "style='display:none;'" : "";
+
+            return `
+                <div class="card shadow-sm mb-3 price-range-row">
+                    <div class="card-body">
+                        <input type="hidden" name="PriceRanges[${index}].PriceRangeID" value="0" />
+                        <input type="hidden" name="PriceRanges[${index}].SiteCategoryId" value="${categoryIdInput.value || 0}" />
+
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-3">
+                                <label class="form-label">Price</label>
+                                <input name="PriceRanges[${index}].Price" value="${price}" class="form-control" type="number" step="0.01" min="0" />
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label">Start Date</label>
+                                <input name="PriceRanges[${index}].StartDate" value="${startDate}" class="form-control" type="date" />
+                            </div>
+
+                            <div class="col-md-3 end-date-col" ${endDateStyle}>
+                                <label class="form-label">End Date</label>
+                                <input name="PriceRanges[${index}].EndDate" value="${endDate}" class="form-control end-date-input" type="date" />
+                            </div>
+
+                            <div class="col-md-2">
+                                <div class="form-check mt-4">
+                                    <input class="form-check-input no-end-date-checkbox" type="checkbox" ${noEndDateChecked} />
+                                    <label class="form-check-label">No end date</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-1">
+                                <button type="button" class="btn btn-outline-danger remove-price-range-btn">X</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function reindexPriceRanges() {
+            const rows = priceRangesContainer.querySelectorAll(".price-range-row");
+
+            rows.forEach((row, index) => {
+                row.querySelectorAll("input[name]").forEach(input => {
+                    input.name = input.name.replace(/PriceRanges\[\d+\]/, `PriceRanges[${index}]`);
+                });
+            });
+        }
+
+        function wireRowEvents(row) {
+            const noEndDateCheckbox = row.querySelector(".no-end-date-checkbox");
+            const endDateCol = row.querySelector(".end-date-col");
+            const endDateInput = row.querySelector(".end-date-input");
+            const removeBtn = row.querySelector(".remove-price-range-btn");
+
+            if (noEndDateCheckbox) {
+                const toggleEndDate = () => {
+                    if (noEndDateCheckbox.checked) {
+                        endDateCol.style.display = "none";
+                        endDateInput.value = "";
+                    } else {
+                        endDateCol.style.display = "";
+                    }
+                };
+
+                noEndDateCheckbox.addEventListener("change", toggleEndDate);
+                toggleEndDate();
+            }
+
+            if (removeBtn) {
+                removeBtn.addEventListener("click", () => {
+                    row.remove();
+                    reindexPriceRanges();
+                });
+            }
+        }
+
+        function wireAllRows() {
+            document.querySelectorAll(".price-range-row").forEach(wireRowEvents);
+        }
+
+        addPriceRangeBtn.addEventListener("click", () => {
+            const index = priceRangesContainer.querySelectorAll(".price-range-row").length;
+            priceRangesContainer.insertAdjacentHTML("beforeend", buildPriceRangeRow(index));
+            wireAllRows();
         });
+
+        categorySelect.addEventListener("change", function () {
+            const selected = this.options[this.selectedIndex];
+            const isCreateNew = selected.value === "0";
+
+            categoryIdInput.value = isCreateNew ? "0" : selected.value;
+            nameInput.value = isCreateNew ? "" : (selected.dataset.name || "");
+
+            priceRangesContainer.innerHTML = "";
+
+            if (!isCreateNew && selected.dataset.ranges) {
+                const ranges = JSON.parse(selected.dataset.ranges);
+
+                if (ranges.length > 0) {
+                    ranges.forEach((range, index) => {
+                        priceRangesContainer.insertAdjacentHTML(
+                            "beforeend",
+                            buildPriceRangeRow(index, range.price, range.startDate, range.endDate)
+                        );
+                    });
+                } else {
+                    priceRangesContainer.insertAdjacentHTML("beforeend", buildPriceRangeRow(0));
+                }
+            } else {
+                priceRangesContainer.insertAdjacentHTML("beforeend", buildPriceRangeRow(0));
+            }
+
+            wireAllRows();
+        });
+
+        if (priceRangesContainer.querySelectorAll(".price-range-row").length === 0) {
+            priceRangesContainer.insertAdjacentHTML("beforeend", buildPriceRangeRow(0));
+        }
+
+        wireAllRows();
     </script>
 }

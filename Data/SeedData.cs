@@ -13,36 +13,53 @@ public static class SeedData
         var userManager = serviceProvider.GetRequiredService<UserManager<UserAccount>>();
 
         
-
-        if (!context.SiteCategory.Any())
+// SiteCategory Data
+       if (!context.SiteCategory.Any())
+{
+    context.SiteCategory.AddRange(
+        new SiteCategory
         {
-            context.SiteCategory.AddRange(
-                new SiteCategory
-                {
-                    Name = "Standard RV Site",
-                    Price = 40,
-                    PricePerWeek = 250,
-                    PricePerMonth = 800
-                }
-            );
+            Name = "Standard RV Site"
         }
+    );
+}
 
-        await context.SaveChangesAsync();
+await context.SaveChangesAsync();
 
-        if (!context.Site.Any())
+// PriceRange Data
+if (!context.PriceRanges.Any())
+{
+    var category = context.SiteCategory.First();
+
+    context.PriceRanges.Add(
+        new PriceRange
         {
-            var category = context.SiteCategory.First();
-
-            context.Site.AddRange(
-                new Site
-                {
-                    SiteCategoryId = category.SiteCategoryId,
-                    MaxVehicleSize = 40,
-                    VisibleToClient = true,
-                    DefaultPrice = 40
-                }
-            );
+            SiteCategoryId = category.SiteCategoryId,
+            Price = 45.00m,
+            StartDate = new DateTime(2026, 1, 1),
+            EndDate = null // stays forever
         }
+    );
+}
+
+await context.SaveChangesAsync();
+
+// Site Data
+if (!context.Site.Any())
+{
+    var category = context.SiteCategory.First();
+
+    context.Site.Add(
+        new Site
+        {
+            SiteCategoryId = category.SiteCategoryId,
+            MaxVehicleSize = 40,
+            VisibleToClient = true
+        }
+    );
+}
+
+await context.SaveChangesAsync();
 
         await context.SaveChangesAsync();
 
@@ -54,7 +71,7 @@ public static class SeedData
                 new SitePhoto
                 {
                     SiteId = site.SiteId,
-                    PhotoUrl = "https://picsum.photos/400/250"
+                    PhotoUrl = "https://images.unsplash.com/photo-1597327190279-43b91807c7a5"
                 }
             );
         }
