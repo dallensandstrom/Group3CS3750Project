@@ -65,6 +65,7 @@ namespace GroupThreeTrailerParkProject.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(Reservation reservation)
         {
             if (!IsSiteAvailable(reservation.SiteId, reservation.CheckInDate, reservation.CheckOutDate))
@@ -91,10 +92,17 @@ namespace GroupThreeTrailerParkProject.Controllers
                     reservation.CheckInDate,
                     reservation.CheckOutDate);
 
-                reservation.TotalCost = reservation.BaseCost + siteFees;
+                var reservationFees = await CalculateReservationFeesAsync(reservation);
+
+                reservation.TotalCost = reservation.BaseCost + siteFees + reservationFees;
+
+                var feeNames = await GetAppliedFeeNamesAsync(reservation);
+
+                reservation.ExtraNotes = BuildExtraNotes(reservation.ExtraNotes, feeNames);
 
                 _context.Add(reservation);
                 await _context.SaveChangesAsync();
+
                 return RedirectToAction(nameof(Index));
             }
 
@@ -115,6 +123,9 @@ namespace GroupThreeTrailerParkProject.Controllers
             {
                 return NotFound();
             }
+
+            reservation.ExtraNotes = ExtractManualNotes(reservation.ExtraNotes);
+
             PopulateSitesDropDownList(reservation.SiteId);
             return View(reservation);
         }
@@ -122,6 +133,7 @@ namespace GroupThreeTrailerParkProject.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id, Reservation reservation)
         {
             if (id != reservation.ReservationID)
@@ -158,10 +170,16 @@ namespace GroupThreeTrailerParkProject.Controllers
                     reservation.CheckInDate,
                     reservation.CheckOutDate);
 
-                reservation.TotalCost = reservation.BaseCost + siteFees;
+                var reservationFees = await CalculateReservationFeesAsync(reservation);
+
+                reservation.TotalCost = reservation.BaseCost + siteFees + reservationFees;
+
+                var feeNames = await GetAppliedFeeNamesAsync(reservation);
+                reservation.ExtraNotes = BuildExtraNotes(reservation.ExtraNotes, feeNames);
 
                 _context.Update(reservation);
                 await _context.SaveChangesAsync();
+
                 return RedirectToAction(nameof(Index));
             }
 
@@ -259,7 +277,7 @@ namespace GroupThreeTrailerParkProject.Controllers
             return total;
         }
         [HttpGet]
-        public async Task<IActionResult> GetReservationPrice(int siteId, DateTime checkInDate, DateTime checkOutDate)
+        public async Task<IActionResult> GetReservationPrice(int siteId, DateTime checkInDate, DateTime checkOutDate, int pets)
         {
             if (checkOutDate <= checkInDate)
             {
@@ -272,16 +290,26 @@ namespace GroupThreeTrailerParkProject.Controllers
 
             try
             {
+                var tempReservation = new Reservation
+                {
+                    SiteId = siteId,
+                    CheckInDate = checkInDate,
+                    CheckOutDate = checkOutDate,
+                    Pets = pets
+                };
+
                 var baseCost = await CalculateBaseCostAsync(siteId, checkInDate, checkOutDate);
                 var siteFees = await CalculateSiteFeesAsync(siteId, checkInDate, checkOutDate);
-                var totalCost = baseCost + siteFees;
+                var reservationFees = await CalculateReservationFeesAsync(tempReservation);
+                var totalCost = baseCost + siteFees + reservationFees;
 
                 return Json(new
                 {
                     success = true,
                     baseCost,
                     totalCost,
-                    siteFees
+                    siteFees,
+                    reservationFees
                 });
             }
             catch (Exception ex)
@@ -317,6 +345,111 @@ namespace GroupThreeTrailerParkProject.Controllers
             }
 
             return totalFees;
+        }
+        private async Task<decimal> CalculateReservationFeesAsync(Reservation reservation)
+        {
+            decimal totalFees = 0m;
+
+            if (reservation.Pets >= 1)
+            {
+                var petFee = await _context.Fees
+                    .FirstOrDefaultAsync(f => f.Name == "Pet Fee" && f.AppliesTo == "Reservation");
+
+                if (petFee != null)
+                {
+                    totalFees += petFee.Amount;
+                }
+            }
+
+            return totalFees;
+        }
+        private async Task<List<string>> GetAppliedFeeNamesAsync(Reservation reservation)
+        {
+            var feeNames = new List<string>();
+
+            var siteFees = await _context.SiteFees
+                .Where(sf => sf.SiteId == reservation.SiteId)
+                .Include(sf => sf.Fee)
+                .ToListAsync();
+
+            foreach (var siteFee in siteFees)
+            {
+                if (siteFee.Fee == null)
+                    continue;
+
+                for (var date = reservation.CheckInDate.Date; date < reservation.CheckOutDate.Date; date = date.AddDays(1))
+                {
+                    if (siteFee.Fee.AppliesOnDate(date))
+                    {
+                        feeNames.Add(siteFee.Fee.Name);
+                        break;
+                    }
+                }
+            }
+
+            if (reservation.Pets >= 1)
+            {
+                var petFee = await _context.Fees
+                    .FirstOrDefaultAsync(f => f.Name == "Pet Fee" && f.AppliesTo == "Reservation");
+
+                if (petFee != null)
+                {
+                    feeNames.Add(petFee.Name);
+                }
+            }
+
+            return feeNames.Distinct().ToList();
+        }
+        private string BuildExtraNotes(string? existingNotes, List<string> feeNames)
+        {
+            var feeText = feeNames.Any()
+                ? $"Fees Applied: {string.Join(", ", feeNames)}"
+                : "";
+
+            if (!string.IsNullOrEmpty(existingNotes) && existingNotes.StartsWith("Fees Applied:"))
+            {
+                var index = existingNotes.IndexOf("\n");
+                existingNotes = index >= 0 ? existingNotes.Substring(index + 1) : "";
+
+                if (!string.IsNullOrEmpty(existingNotes) && existingNotes.StartsWith("Notes:"))
+                {
+                    existingNotes = existingNotes.Substring("Notes:".Length).TrimStart();
+                }
+            }
+
+            if (!string.IsNullOrEmpty(feeText))
+            {
+                if (!string.IsNullOrWhiteSpace(existingNotes))
+                {
+                    return $"{feeText}\nNotes: {existingNotes}";
+                }
+                else
+                {
+                    return $"{feeText}\nNotes:";
+                }
+            }
+
+            return existingNotes ?? "";
+        }
+        private string ExtractManualNotes(string? extraNotes)
+        {
+            if (string.IsNullOrWhiteSpace(extraNotes))
+                return string.Empty;
+
+            var text = extraNotes;
+
+            if (text.StartsWith("Fees Applied:"))
+            {
+                var notesIndex = text.IndexOf("Notes:");
+                if (notesIndex >= 0)
+                {
+                    return text.Substring(notesIndex + "Notes:".Length).Trim();
+                }
+
+                return string.Empty;
+            }
+
+            return text;
         }
     }
 }
