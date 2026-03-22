@@ -125,7 +125,7 @@ namespace GroupThreeTrailerParkProject.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(10,2)");
 
-                    b.Property<int>("SiteNumber")
+                    b.Property<int>("SiteCategoryId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("StartDate")
@@ -133,7 +133,7 @@ namespace GroupThreeTrailerParkProject.Migrations
 
                     b.HasKey("PriceRangeID");
 
-                    b.HasIndex("SiteNumber");
+                    b.HasIndex("SiteCategoryId");
 
                     b.ToTable("PriceRanges");
                 });
@@ -226,9 +226,6 @@ namespace GroupThreeTrailerParkProject.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SiteId"));
 
-                    b.Property<decimal>("DefaultPrice")
-                        .HasColumnType("decimal(10,2)");
-
                     b.Property<int>("MaxVehicleSize")
                         .HasColumnType("int");
 
@@ -239,6 +236,8 @@ namespace GroupThreeTrailerParkProject.Migrations
                         .HasColumnType("bit");
 
                     b.HasKey("SiteId");
+
+                    b.HasIndex("SiteCategoryId");
 
                     b.ToTable("Site");
                 });
@@ -254,15 +253,6 @@ namespace GroupThreeTrailerParkProject.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(10,2)");
-
-                    b.Property<decimal>("PricePerMonth")
-                        .HasColumnType("decimal(10,2)");
-
-                    b.Property<decimal>("PricePerWeek")
-                        .HasColumnType("decimal(10,2)");
 
                     b.HasKey("SiteCategoryId");
 
@@ -551,13 +541,13 @@ namespace GroupThreeTrailerParkProject.Migrations
 
             modelBuilder.Entity("GroupThreeTrailerParkProject.Models.PriceRange", b =>
                 {
-                    b.HasOne("GroupThreeTrailerParkProject.Models.Site", "Site")
+                    b.HasOne("GroupThreeTrailerParkProject.Models.SiteCategory", "SiteCategory")
                         .WithMany("PriceRanges")
-                        .HasForeignKey("SiteNumber")
+                        .HasForeignKey("SiteCategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Site");
+                    b.Navigation("SiteCategory");
                 });
 
             modelBuilder.Entity("GroupThreeTrailerParkProject.Models.Reservation", b =>
@@ -588,6 +578,17 @@ namespace GroupThreeTrailerParkProject.Migrations
                     b.Navigation("Fee");
 
                     b.Navigation("Reservation");
+                });
+
+            modelBuilder.Entity("GroupThreeTrailerParkProject.Models.Site", b =>
+                {
+                    b.HasOne("GroupThreeTrailerParkProject.Models.SiteCategory", "SiteCategory")
+                        .WithMany()
+                        .HasForeignKey("SiteCategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SiteCategory");
                 });
 
             modelBuilder.Entity("GroupThreeTrailerParkProject.Models.SiteFee", b =>
@@ -685,13 +686,16 @@ namespace GroupThreeTrailerParkProject.Migrations
 
             modelBuilder.Entity("GroupThreeTrailerParkProject.Models.Site", b =>
                 {
-                    b.Navigation("PriceRanges");
-
                     b.Navigation("Reservations");
 
                     b.Navigation("SiteFees");
 
                     b.Navigation("SitePhoto");
+                });
+
+            modelBuilder.Entity("GroupThreeTrailerParkProject.Models.SiteCategory", b =>
+                {
+                    b.Navigation("PriceRanges");
                 });
 #pragma warning restore 612, 618
         }

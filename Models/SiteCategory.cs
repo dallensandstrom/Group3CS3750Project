@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace GroupThreeTrailerParkProject.Models
 {
@@ -10,18 +9,11 @@ namespace GroupThreeTrailerParkProject.Models
 
         public required string Name { get; set; }
 
-        [Column(TypeName = "decimal(10,2)")]
-        public decimal Price { get; set; }
-
-        [Column(TypeName = "decimal(10,2)")]
-        public decimal PricePerWeek { get; set; }
-
-        [Column(TypeName = "decimal(10,2)")]
-        public decimal PricePerMonth { get; set; }
+        public List<PriceRange> PriceRanges { get; set; } = new();
 
         public SiteCategory()
         {
-            
+
         }
     }
 }

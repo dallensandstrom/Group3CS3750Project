@@ -1,4 +1,6 @@
 ﻿@model IEnumerable<GroupThreeTrailerParkProject.Models.Site>
+@using Microsoft.EntityFrameworkCore
+@inject GroupThreeTrailerParkProject.Data.ApplicationDbContext _context
 
 @{
     ViewData["Title"] = "Site Catalog";
@@ -18,7 +20,17 @@
         {
             <div class="col-md-4 col-lg-3 mb-4">
                 <div class="card h-100 shadow-sm">
-                    <img src="https://via.placeholder.com/300x200?text=Site"
+                    @{
+                        var firstPhotoUrl = _context.SitePhotos
+                            .Where(p => p.SiteId == site.SiteId)
+                            .OrderBy(p => p.PhotoId)
+                            .Select(p => p.PhotoUrl)
+                            .FirstOrDefault();
+                    }
+
+                    <img src="@(string.IsNullOrEmpty(firstPhotoUrl)
+                                    ? "https://via.placeholder.com/300x200?text=Site"
+                                    : firstPhotoUrl)"
                          class="card-img-top"
                          alt="Site Photo"
                          style="height: 200px; object-fit: cover;" />
@@ -27,7 +39,7 @@
                         <h5 class="card-title">Site @site.SiteId</h5>
 
                         <a asp-controller="Site"
-                           asp-action="Edit"
+                           asp-action="Details"
                            asp-route-id="@site.SiteId"
                            class="btn btn-outline-primary">
                             Details

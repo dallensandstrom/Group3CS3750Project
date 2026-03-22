@@ -69,31 +69,12 @@ namespace GroupThreeTrailerParkProject.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Site",
-                columns: table => new
-                {
-                    SiteId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    SiteCategoryId = table.Column<int>(type: "int", nullable: false),
-                    MaxVehicleSize = table.Column<int>(type: "int", nullable: false),
-                    VisibleToClient = table.Column<bool>(type: "bit", nullable: false),
-                    DefaultPrice = table.Column<decimal>(type: "decimal(10,2)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Site", x => x.SiteId);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "SiteCategory",
                 columns: table => new
                 {
                     SiteCategoryId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Price = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
-                    PricePerWeek = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
-                    PricePerMonth = table.Column<decimal>(type: "decimal(10,2)", nullable: false)
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -233,7 +214,7 @@ namespace GroupThreeTrailerParkProject.Migrations
                 {
                     PriceRangeID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    SiteNumber = table.Column<int>(type: "int", nullable: false),
+                    SiteCategoryId = table.Column<int>(type: "int", nullable: false),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Price = table.Column<decimal>(type: "decimal(10,2)", nullable: false)
@@ -242,10 +223,31 @@ namespace GroupThreeTrailerParkProject.Migrations
                 {
                     table.PrimaryKey("PK_PriceRanges", x => x.PriceRangeID);
                     table.ForeignKey(
-                        name: "FK_PriceRanges_Site_SiteNumber",
-                        column: x => x.SiteNumber,
-                        principalTable: "Site",
-                        principalColumn: "SiteId",
+                        name: "FK_PriceRanges_SiteCategory_SiteCategoryId",
+                        column: x => x.SiteCategoryId,
+                        principalTable: "SiteCategory",
+                        principalColumn: "SiteCategoryId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Site",
+                columns: table => new
+                {
+                    SiteId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    SiteCategoryId = table.Column<int>(type: "int", nullable: false),
+                    MaxVehicleSize = table.Column<int>(type: "int", nullable: false),
+                    VisibleToClient = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Site", x => x.SiteId);
+                    table.ForeignKey(
+                        name: "FK_Site_SiteCategory_SiteCategoryId",
+                        column: x => x.SiteCategoryId,
+                        principalTable: "SiteCategory",
+                        principalColumn: "SiteCategoryId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -426,9 +428,9 @@ namespace GroupThreeTrailerParkProject.Migrations
                 column: "ReservationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PriceRanges_SiteNumber",
+                name: "IX_PriceRanges_SiteCategoryId",
                 table: "PriceRanges",
-                column: "SiteNumber");
+                column: "SiteCategoryId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ReservationFees_FeeID",
@@ -444,6 +446,11 @@ namespace GroupThreeTrailerParkProject.Migrations
                 name: "IX_Reservations_SiteId",
                 table: "Reservations",
                 column: "SiteId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Site_SiteCategoryId",
+                table: "Site",
+                column: "SiteCategoryId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SiteFees_FeeID",
@@ -492,9 +499,6 @@ namespace GroupThreeTrailerParkProject.Migrations
                 name: "ReservationFees");
 
             migrationBuilder.DropTable(
-                name: "SiteCategory");
-
-            migrationBuilder.DropTable(
                 name: "SiteFees");
 
             migrationBuilder.DropTable(
@@ -514,6 +518,9 @@ namespace GroupThreeTrailerParkProject.Migrations
 
             migrationBuilder.DropTable(
                 name: "Site");
+
+            migrationBuilder.DropTable(
+                name: "SiteCategory");
         }
     }
 }

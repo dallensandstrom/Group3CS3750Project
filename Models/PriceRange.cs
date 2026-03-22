@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -9,8 +8,8 @@ namespace GroupThreeTrailerParkProject.Models
         [Key]
         public int PriceRangeID { get; set; }
 
-        [ForeignKey("Site")]
-        public int SiteNumber { get; set; }
+        [ForeignKey("SiteCategory")]
+        public int SiteCategoryId { get; set; }
 
         [DataType(DataType.Date)]
         public DateTime StartDate { get; set; }
@@ -21,20 +20,16 @@ namespace GroupThreeTrailerParkProject.Models
         [Column(TypeName = "decimal(10,2)")]
         public decimal Price { get; set; }
 
-        // Navigation property
-        public Site? Site { get; set; }
+        public SiteCategory? SiteCategory { get; set; }
 
-        // Method from class diagram
         public bool IsInRange(DateTime date)
         {
-            // If EndDate is null, this is the current/default price (applies indefinitely from StartDate)
             if (EndDate == null)
             {
                 return date >= StartDate;
             }
 
-            // Otherwise check if date falls within the specific range
-            return date >= StartDate && date <= EndDate;
+            return date >= StartDate && date <= EndDate.Value;
         }
 
         public PriceRange()
