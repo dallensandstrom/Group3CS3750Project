@@ -20,11 +20,12 @@ namespace GroupThreeTrailerParkProject.Models
         [MaxLength(50)]
         public string AppliesTo { get; set; } = string.Empty;
 
-        // Navigation properties
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+
         public List<ReservationFee> ReservationFees { get; set; } = new();
         public List<SiteFee> SiteFees { get; set; } = new();
 
-        // Methods from class diagram
         public bool AppliesToReservation()
         {
             return AppliesTo.Equals("Reservation", StringComparison.OrdinalIgnoreCase) ||
@@ -37,9 +38,16 @@ namespace GroupThreeTrailerParkProject.Models
                    AppliesTo.Contains("Site", StringComparison.OrdinalIgnoreCase);
         }
 
+        public bool AppliesOnDate(DateTime date)
+        {
+            var day = date.Date;
+            var startsOk = !StartDate.HasValue || StartDate.Value.Date <= day;
+            var endsOk = !EndDate.HasValue || EndDate.Value.Date >= day;
+            return startsOk && endsOk;
+        }
+
         public Fee()
         {
-
         }
     }
 }

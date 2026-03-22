@@ -38,10 +38,16 @@ namespace GroupThreeTrailerParkProject.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("FeeID");
 
@@ -149,7 +155,7 @@ namespace GroupThreeTrailerParkProject.Migrations
                     b.Property<int>("AccountID")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("BaseCost")
+                    b.Property<decimal?>("BaseCost")
                         .HasColumnType("decimal(10,2)");
 
                     b.Property<DateTime>("CheckInDate")
@@ -166,7 +172,6 @@ namespace GroupThreeTrailerParkProject.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ExtraNotes")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("NumAdults")
@@ -182,7 +187,7 @@ namespace GroupThreeTrailerParkProject.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("TotalCost")
+                    b.Property<decimal?>("TotalCost")
                         .HasColumnType("decimal(10,2)");
 
                     b.HasKey("ReservationID");
