@@ -182,6 +182,21 @@ await context.SaveChangesAsync();
                 context.SaveChanges();
             }
         }
+        if (!context.Fees.Any(f => f.Name == "Pet Fee"))
+        {
+            context.Fees.Add(
+                new Fee
+                {
+                    Name = "Pet Fee",
+                    Amount = 10.00m,
+                    AppliesTo = "Reservation",
+                    StartDate = null,
+                    EndDate = null
+                }
+            );
+
+            context.SaveChanges();
+        }
     }
 
     //Dallen addition SeedUser function

@@ -90,6 +90,7 @@
             const siteId = document.getElementById("SiteId")?.value;
             const checkInDate = document.getElementById("CheckInDate")?.value;
             const checkOutDate = document.getElementById("CheckOutDate")?.value;
+            const pets = document.getElementById("Pets")?.value || 0;
 
             const baseCostInput = document.getElementById("BaseCost");
             const totalCostInput = document.getElementById("TotalCost");
@@ -101,7 +102,7 @@
             }
 
             try {
-                const response = await fetch(`/AdminReservations/GetReservationPrice?siteId=${siteId}&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}`);
+                const response = await fetch(`/AdminReservations/GetReservationPrice?siteId=${siteId}&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}&pets=${pets}`);
                 const data = await response.json();
 
                 if (data.success) {
@@ -122,6 +123,7 @@
         document.getElementById("SiteId")?.addEventListener("change", updateReservationPrice);
         document.getElementById("CheckInDate")?.addEventListener("change", updateReservationPrice);
         document.getElementById("CheckOutDate")?.addEventListener("change", updateReservationPrice);
+        document.getElementById("Pets")?.addEventListener("input", updateReservationPrice);
 
         window.addEventListener("load", updateReservationPrice);
     </script>
