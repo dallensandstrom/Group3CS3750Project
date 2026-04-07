@@ -110,6 +110,17 @@ await context.SaveChangesAsync();
             role: "Guest",
             dodAffiliation: DODAffiliation.Other,
             dodStatus: DODStatus.Retired);
+        await SeedUser(
+            userManager,
+            context,
+            email: "guest1@rvpark.com",
+            password: "Password1!",
+            firstName: "Guest1",
+            lastName: "User",
+            phoneNumber: "5555550003",
+            role: "Guest",
+            dodAffiliation: DODAffiliation.Other,
+            dodStatus: DODStatus.Retired);
 
         if (!context.Reservations.Any())
         {
@@ -131,7 +142,7 @@ await context.SaveChangesAsync();
                 },
                 new Reservation
                 {
-                    AccountID = 2,
+                    AccountID = 1,
                     CustomerName = "Mary Johnson",
                     SiteId = 1,
                     CheckInDate = DateTime.Today.AddDays(3),

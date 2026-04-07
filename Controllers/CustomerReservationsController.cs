@@ -1,43 +1,43 @@
 ﻿using GroupThreeTrailerParkProject.Data;
 using GroupThreeTrailerParkProject.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace GroupThreeTrailerParkProject.Controllers
 {
-    [Authorize(Roles = "Employee,Admin")]
-    public class AdminReservationsController : Controller
+    [Authorize(Roles = "Guest")]
+    public class CustomerReservationsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<UserAccount> _userManager;
 
-        public AdminReservationsController(ApplicationDbContext context)
+        public CustomerReservationsController(
+            ApplicationDbContext context,
+            UserManager<UserAccount> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         public async Task<IActionResult> Index(
-    string? searchString,
     DateTime? startDate,
     DateTime? endDate,
     string? status,
     string? petFilter)
         {
+            var accountId = await GetCurrentGuestAccountIdAsync();
+            if (accountId == null)
+            {
+                return Forbid();
+            }
+
             var reservations = _context.Reservations
                 .Include(r => r.Site)
+                .Where(r => r.AccountID == accountId.Value)
                 .AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(searchString))
-            {
-                reservations = reservations.Where(r =>
-                    r.CustomerName.Contains(searchString) ||
-                    r.ReservationID.ToString() == searchString);
-            }
 
             if (startDate.HasValue && endDate.HasValue)
             {
@@ -80,7 +80,6 @@ namespace GroupThreeTrailerParkProject.Controllers
                 }
             }
 
-            ViewBag.SearchString = searchString;
             ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
             ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
             ViewBag.Status = status;
@@ -116,8 +115,6 @@ namespace GroupThreeTrailerParkProject.Controllers
                 .ToListAsync());
         }
 
-
-
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -125,8 +122,18 @@ namespace GroupThreeTrailerParkProject.Controllers
                 return NotFound();
             }
 
+            var accountId = await GetCurrentGuestAccountIdAsync();
+            if (accountId == null)
+            {
+                return Forbid();
+            }
+
             var reservation = await _context.Reservations
-                .FirstOrDefaultAsync(m => m.ReservationID == id);
+                .Include(r => r.Site)
+                .FirstOrDefaultAsync(r =>
+                    r.ReservationID == id &&
+                    r.AccountID == accountId.Value);
+
             if (reservation == null)
             {
                 return NotFound();
@@ -135,23 +142,35 @@ namespace GroupThreeTrailerParkProject.Controllers
             return View(reservation);
         }
 
-        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             PopulateSitesDropDownList();
-            PopulateStatusDropDownList("Pending");
 
             return View(new Reservation
             {
-                Status = "Pending"
+                CheckInDate = DateTime.Today,
+                CheckOutDate = DateTime.Today.AddDays(1)
             });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(Reservation reservation)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            var accountId = await GetCurrentGuestAccountIdAsync();
+
+            if (currentUser == null || accountId == null)
+            {
+                return Forbid();
+            }
+
+            reservation.AccountID = accountId.Value;
+            reservation.CustomerName = $"{currentUser.FirstName} {currentUser.LastName}".Trim();
+            reservation.Status = string.IsNullOrWhiteSpace(reservation.Status)
+                ? "Pending"
+                : reservation.Status;
+
             if (!IsSiteAvailable(reservation.SiteId, reservation.CheckInDate, reservation.CheckOutDate))
             {
                 ModelState.AddModelError("", "That site is already reserved for those dates.");
@@ -160,11 +179,6 @@ namespace GroupThreeTrailerParkProject.Controllers
             if (reservation.CheckOutDate <= reservation.CheckInDate)
             {
                 ModelState.AddModelError("", "Check-out date must be after check-in date.");
-            }
-
-            if (!IsValidStatus(reservation.Status))
-            {
-                ModelState.AddModelError("Status", "Status must be Pending, Confirmed, or Canceled.");
             }
 
             if (ModelState.IsValid)
@@ -186,7 +200,6 @@ namespace GroupThreeTrailerParkProject.Controllers
                 reservation.TotalCost = reservation.BaseCost + siteFees + reservationFees;
 
                 var feeNames = await GetAppliedFeeNamesAsync(reservation);
-
                 reservation.ExtraNotes = BuildExtraNotes(reservation.ExtraNotes, feeNames);
 
                 _context.Add(reservation);
@@ -196,11 +209,9 @@ namespace GroupThreeTrailerParkProject.Controllers
             }
 
             PopulateSitesDropDownList(reservation.SiteId);
-            PopulateStatusDropDownList(reservation.Status);
             return View(reservation);
         }
 
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -208,7 +219,17 @@ namespace GroupThreeTrailerParkProject.Controllers
                 return NotFound();
             }
 
-            var reservation = await _context.Reservations.FindAsync(id);
+            var accountId = await GetCurrentGuestAccountIdAsync();
+            if (accountId == null)
+            {
+                return Forbid();
+            }
+
+            var reservation = await _context.Reservations
+                .FirstOrDefaultAsync(r =>
+                    r.ReservationID == id &&
+                    r.AccountID == accountId.Value);
+
             if (reservation == null)
             {
                 return NotFound();
@@ -217,30 +238,45 @@ namespace GroupThreeTrailerParkProject.Controllers
             reservation.ExtraNotes = ExtractManualNotes(reservation.ExtraNotes);
 
             PopulateSitesDropDownList(reservation.SiteId);
-            PopulateStatusDropDownList(reservation.Status);
-
             return View(reservation);
         }
 
-
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id, Reservation reservation)
         {
             if (id != reservation.ReservationID)
+            {
                 return NotFound();
+            }
+
+            var accountId = await GetCurrentGuestAccountIdAsync();
+            if (accountId == null)
+            {
+                return Forbid();
+            }
 
             var existingReservation = await _context.Reservations
                 .AsNoTracking()
-                .FirstOrDefaultAsync(r => r.ReservationID == id);
+                .FirstOrDefaultAsync(r =>
+                    r.ReservationID == id &&
+                    r.AccountID == accountId.Value);
 
             if (existingReservation == null)
+            {
                 return NotFound();
+            }
 
+            reservation.AccountID = existingReservation.AccountID;
+            reservation.CustomerName = existingReservation.CustomerName;
+            reservation.Status = existingReservation.Status;
             reservation.DateCreated = existingReservation.DateCreated;
 
-            if (!IsSiteAvailable(reservation.SiteId, reservation.CheckInDate, reservation.CheckOutDate, reservation.ReservationID))
+            if (!IsSiteAvailable(
+                reservation.SiteId,
+                reservation.CheckInDate,
+                reservation.CheckOutDate,
+                reservation.ReservationID))
             {
                 ModelState.AddModelError("", "That site is already reserved for those dates.");
             }
@@ -248,11 +284,6 @@ namespace GroupThreeTrailerParkProject.Controllers
             if (reservation.CheckOutDate <= reservation.CheckInDate)
             {
                 ModelState.AddModelError("", "Check-out date must be after check-in date.");
-            }
-
-            if (!IsValidStatus(reservation.Status))
-            {
-                ModelState.AddModelError("Status", "Status must be Pending, Confirmed, or Canceled.");
             }
 
             if (ModelState.IsValid)
@@ -281,11 +312,9 @@ namespace GroupThreeTrailerParkProject.Controllers
             }
 
             PopulateSitesDropDownList(reservation.SiteId);
-            PopulateStatusDropDownList(reservation.Status);
             return View(reservation);
         }
 
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -293,8 +322,18 @@ namespace GroupThreeTrailerParkProject.Controllers
                 return NotFound();
             }
 
+            var accountId = await GetCurrentGuestAccountIdAsync();
+            if (accountId == null)
+            {
+                return Forbid();
+            }
+
             var reservation = await _context.Reservations
-                .FirstOrDefaultAsync(m => m.ReservationID == id);
+                .Include(r => r.Site)
+                .FirstOrDefaultAsync(r =>
+                    r.ReservationID == id &&
+                    r.AccountID == accountId.Value);
+
             if (reservation == null)
             {
                 return NotFound();
@@ -305,10 +344,19 @@ namespace GroupThreeTrailerParkProject.Controllers
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var reservation = await _context.Reservations.FindAsync(id);
+            var accountId = await GetCurrentGuestAccountIdAsync();
+            if (accountId == null)
+            {
+                return Forbid();
+            }
+
+            var reservation = await _context.Reservations
+                .FirstOrDefaultAsync(r =>
+                    r.ReservationID == id &&
+                    r.AccountID == accountId.Value);
+
             if (reservation == null)
             {
                 return NotFound();
@@ -318,68 +366,16 @@ namespace GroupThreeTrailerParkProject.Controllers
             _context.Update(reservation);
 
             await _context.SaveChangesAsync();
+
             return RedirectToAction(nameof(Index));
         }
 
-        private bool ReservationExists(int id)
-        {
-            return _context.Reservations.Any(e => e.ReservationID == id);
-        }
-        private bool IsSiteAvailable(int siteNumber, DateTime checkIn, DateTime checkOut, int? reservationId = null)
-        {
-            return !_context.Reservations.Any(r =>
-                r.SiteId == siteNumber &&
-                r.ReservationID != reservationId &&
-                r.Status != "Canceled" &&
-                checkIn < r.CheckOutDate &&
-                checkOut > r.CheckInDate
-            );
-        }
-        private void PopulateSitesDropDownList(object? selectedSite = null)
-        {
-            var sitesQuery = _context.Site
-                .OrderBy(s => s.SiteId)
-                .ToList();
-
-            ViewBag.SiteID = new SelectList(sitesQuery, "SiteId", "SiteId", selectedSite);
-        }
-        private async Task<decimal> GetNightlyRateForDateAsync(int siteId, DateTime date)
-        {
-            var site = await _context.Site
-                .Include(s => s.SiteCategory)
-                .FirstOrDefaultAsync(s => s.SiteId == siteId);
-
-            if (site == null)
-                throw new Exception("Selected site was not found.");
-
-            var priceRange = await _context.PriceRanges
-                .Where(p => p.SiteCategoryId == site.SiteCategoryId)
-                .Where(p => p.StartDate.Date <= date.Date &&
-                           (p.EndDate == null || p.EndDate.Value.Date >= date.Date))
-                .OrderByDescending(p => p.StartDate)
-                .FirstOrDefaultAsync();
-
-            if (priceRange == null)
-                throw new Exception("No price range found for the selected site and date.");
-
-            return priceRange.Price;
-        }
-        private async Task<decimal> CalculateBaseCostAsync(int siteId, DateTime checkInDate, DateTime checkOutDate)
-        {
-            if (checkOutDate <= checkInDate)
-                throw new Exception("Check-out date must be after check-in date.");
-
-            decimal total = 0m;
-
-            for (var date = checkInDate.Date; date < checkOutDate.Date; date = date.AddDays(1))
-            {
-                total += await GetNightlyRateForDateAsync(siteId, date);
-            }
-
-            return total;
-        }
         [HttpGet]
-        public async Task<IActionResult> GetReservationPrice(int siteId, DateTime checkInDate, DateTime checkOutDate, int pets)
+        public async Task<IActionResult> GetReservationPrice(
+            int siteId,
+            DateTime checkInDate,
+            DateTime checkOutDate,
+            int pets)
         {
             if (checkOutDate <= checkInDate)
             {
@@ -423,6 +419,78 @@ namespace GroupThreeTrailerParkProject.Controllers
                 });
             }
         }
+
+        private async Task<int?> GetCurrentGuestAccountIdAsync()
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return null;
+            }
+
+            var guestProfile = await _context.GuestProfiles
+                .FirstOrDefaultAsync(g => g.UserAccountID == currentUser.Id);
+
+            return guestProfile?.Id;
+        }
+
+        private bool IsSiteAvailable(int siteNumber, DateTime checkIn, DateTime checkOut, int? reservationId = null)
+        {
+            return !_context.Reservations.Any(r =>
+                r.SiteId == siteNumber &&
+                r.ReservationID != reservationId &&
+                r.Status != "Canceled" &&
+                checkIn < r.CheckOutDate &&
+                checkOut > r.CheckInDate
+            );
+        }
+
+        private void PopulateSitesDropDownList(object? selectedSite = null)
+        {
+            var sitesQuery = _context.Site
+                .OrderBy(s => s.SiteId)
+                .ToList();
+
+            ViewBag.SiteId = new SelectList(sitesQuery, "SiteId", "SiteId", selectedSite);
+        }
+
+        private async Task<decimal> GetNightlyRateForDateAsync(int siteId, DateTime date)
+        {
+            var site = await _context.Site
+                .Include(s => s.SiteCategory)
+                .FirstOrDefaultAsync(s => s.SiteId == siteId);
+
+            if (site == null)
+                throw new Exception("Selected site was not found.");
+
+            var priceRange = await _context.PriceRanges
+                .Where(p => p.SiteCategoryId == site.SiteCategoryId)
+                .Where(p => p.StartDate.Date <= date.Date &&
+                           (p.EndDate == null || p.EndDate.Value.Date >= date.Date))
+                .OrderByDescending(p => p.StartDate)
+                .FirstOrDefaultAsync();
+
+            if (priceRange == null)
+                throw new Exception("No price range found for the selected site and date.");
+
+            return priceRange.Price;
+        }
+
+        private async Task<decimal> CalculateBaseCostAsync(int siteId, DateTime checkInDate, DateTime checkOutDate)
+        {
+            if (checkOutDate <= checkInDate)
+                throw new Exception("Check-out date must be after check-in date.");
+
+            decimal total = 0m;
+
+            for (var date = checkInDate.Date; date < checkOutDate.Date; date = date.AddDays(1))
+            {
+                total += await GetNightlyRateForDateAsync(siteId, date);
+            }
+
+            return total;
+        }
+
         private async Task<decimal> CalculateSiteFeesAsync(int siteId, DateTime checkInDate, DateTime checkOutDate)
         {
             var siteFees = await _context.SiteFees
@@ -448,6 +516,7 @@ namespace GroupThreeTrailerParkProject.Controllers
 
             return totalFees;
         }
+
         private async Task<decimal> CalculateReservationFeesAsync(Reservation reservation)
         {
             decimal totalFees = 0m;
@@ -465,6 +534,7 @@ namespace GroupThreeTrailerParkProject.Controllers
 
             return totalFees;
         }
+
         private async Task<List<string>> GetAppliedFeeNamesAsync(Reservation reservation)
         {
             var feeNames = new List<string>();
@@ -502,6 +572,7 @@ namespace GroupThreeTrailerParkProject.Controllers
 
             return feeNames.Distinct().ToList();
         }
+
         private string BuildExtraNotes(string? existingNotes, List<string> feeNames)
         {
             var feeText = feeNames.Any()
@@ -533,6 +604,7 @@ namespace GroupThreeTrailerParkProject.Controllers
 
             return existingNotes ?? "";
         }
+
         private string ExtractManualNotes(string? extraNotes)
         {
             if (string.IsNullOrWhiteSpace(extraNotes))
@@ -552,22 +624,6 @@ namespace GroupThreeTrailerParkProject.Controllers
             }
 
             return text;
-        }
-        private static readonly List<string> AllowedStatuses = new()
-{
-            "Pending",
-            "Confirmed",
-            "Canceled"
-};
-
-        private bool IsValidStatus(string? status)
-        {
-            return !string.IsNullOrWhiteSpace(status) && AllowedStatuses.Contains(status);
-        }
-
-        private void PopulateStatusDropDownList(string? selectedStatus = null)
-        {
-            ViewBag.StatusList = new SelectList(AllowedStatuses, selectedStatus);
         }
     }
 }

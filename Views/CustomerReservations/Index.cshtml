@@ -1,0 +1,73 @@
+﻿@model IEnumerable<Reservation>
+
+@{
+    ViewData["Title"] = "My Reservations";
+}
+
+<h1>My Reservations</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Reservation</a>
+</p>
+
+<form asp-action="Index" method="get" class="row g-3 mb-3">
+    <div class="col-md-3">
+        <label class="form-label">Start Date</label>
+        <input type="date" name="startDate" value="@ViewBag.StartDate" class="form-control" />
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label">End Date</label>
+        <input type="date" name="endDate" value="@ViewBag.EndDate" class="form-control" />
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Status</label>
+        <select name="status" class="form-control" asp-items="ViewBag.StatusList"></select>
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Pets</label>
+        <select name="petFilter" class="form-control" asp-items="ViewBag.PetFilterList"></select>
+    </div>
+
+    <div class="col-md-2 d-flex align-items-end">
+        <button type="submit" class="btn btn-primary me-2">Filter</button>
+        <a asp-action="Index" class="btn btn-secondary">Clear</a>
+    </div>
+</form>
+<table class="table">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.SiteId)</th>
+            <th>@Html.DisplayNameFor(model => model.CheckInDate)</th>
+            <th>@Html.DisplayNameFor(model => model.CheckOutDate)</th>
+            <th>@Html.DisplayNameFor(model => model.NumAdults)</th>
+            <th>@Html.DisplayNameFor(model => model.Pets)</th>
+            <th>@Html.DisplayNameFor(model => model.TotalCost)</th>
+            <th>@Html.DisplayNameFor(model => model.Status)</th>
+            <th>@Html.DisplayNameFor(model => model.DateCreated)</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.SiteId)</td>
+                <td>@Html.DisplayFor(modelItem => item.CheckInDate)</td>
+                <td>@Html.DisplayFor(modelItem => item.CheckOutDate)</td>
+                <td>@Html.DisplayFor(modelItem => item.NumAdults)</td>
+                <td>@Html.DisplayFor(modelItem => item.Pets)</td>
+                <td>@Html.DisplayFor(modelItem => item.TotalCost)</td>
+                <td>@Html.DisplayFor(modelItem => item.Status)</td>
+                <td>@Html.DisplayFor(modelItem => item.DateCreated)</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.ReservationID">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.ReservationID">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.ReservationID">Cancel</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
