@@ -1,0 +1,46 @@
+﻿@model Reservation
+
+@{
+    ViewData["Title"] = "Reservation Details";
+}
+
+<h1>Reservation Details</h1>
+
+<div>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.SiteId)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.SiteId)</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.CheckInDate)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.CheckInDate)</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.CheckOutDate)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.CheckOutDate)</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.NumAdults)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.NumAdults)</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Pets)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.Pets)</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.BaseCost)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.BaseCost)</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.TotalCost)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.TotalCost)</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Status)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.Status)</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.DateCreated)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.DateCreated)</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.ExtraNotes)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.ExtraNotes)</dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model?.ReservationID">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GroupThreeTrailerParkProject.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260322164443_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260407133852_AddCustomerReservationsView")]
+    partial class AddCustomerReservationsView
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
