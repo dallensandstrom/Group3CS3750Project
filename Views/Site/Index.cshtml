@@ -1,6 +1,10 @@
 ﻿@model IEnumerable<GroupThreeTrailerParkProject.Models.Site>
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Identity
+
 @inject GroupThreeTrailerParkProject.Data.ApplicationDbContext _context
+@inject SignInManager<UserAccount> SignInManager
+@inject UserManager<UserAccount> UserManager
 
 @{
     ViewData["Title"] = "Site Catalog";
@@ -9,10 +13,16 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Site Catalog</h2>
-        <div>
-            <a asp-controller="Site" asp-action="Create" class="btn btn-primary me-2">Create Site</a>
-            <a asp-controller="Site" asp-action="CategoryManage" class="btn btn-secondary">Site Categories</a>
-        </div>
+        @if (SignInManager.IsSignedIn(User))
+        {
+            if (User.IsInRole("Admin"))
+            {
+                <div>
+                    <a asp-controller="Site" asp-action="Create" class="btn btn-primary me-2">Create Site</a>
+                    <a asp-controller="Site" asp-action="CategoryManage" class="btn btn-secondary">Site Categories</a>
+                </div>
+            }
+        }
     </div>
 
     <div class="row">
