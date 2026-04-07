@@ -175,7 +175,7 @@ await context.SaveChangesAsync();
             context.SaveChanges();
         }
         //Currently required to link a fee to a site logic needs to be added elsewhere
-        if (!context.SiteFees.Any(sf => sf.SiteId == 1 && sf.Fee.Name == "Independence Day Fee"))
+        if (!context.SiteFees.Any(sf => sf.SiteId == 1 && sf.Fee != null && sf.Fee.Name == "Independence Day Fee"))
         {
             var site1 = context.Site.FirstOrDefault(s => s.SiteId == 1);
             var july4Fee = context.Fees.FirstOrDefault(f => f.Name == "Independence Day Fee");
