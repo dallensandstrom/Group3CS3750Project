@@ -205,11 +205,75 @@ namespace GroupThreeTrailerParkProject.Controllers
                 _context.Add(reservation);
                 await _context.SaveChangesAsync();
 
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Review), new { id = reservation.ReservationID });
             }
 
             PopulateSitesDropDownList(reservation.SiteId);
             return View(reservation);
+        }
+
+        public async Task<IActionResult> Review(int? id)
+        {
+            if (id == null) return NotFound();
+            var accountId = await GetCurrentGuestAccountIdAsync();
+            if (accountId == null) return Forbid();
+
+            var reservation = await _context.Reservations
+                .Include(r => r.Site)
+                .FirstOrDefaultAsync(r =>
+                    r.ReservationID == id &&
+                    r.AccountID == accountId.Value);
+
+            if (reservation == null) return NotFound();
+            return View(reservation);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmPayment(int id)
+        {
+            var accountId = await GetCurrentGuestAccountIdAsync();
+            if (accountId == null) return Forbid();
+
+            var reservation = await _context.Reservations
+                .FirstOrDefaultAsync(r =>
+                    r.ReservationID == id &&
+                    r.AccountID == accountId.Value);
+
+            if (reservation == null) return NotFound();
+
+            // Check if a payment already exists for this reservation
+            var existingPayment = await _context.Payments
+                .FirstOrDefaultAsync(p => p.ReservationId == id);
+
+            if (existingPayment != null)
+            {
+                // Update existing payment with new amount
+                existingPayment.Amount = reservation.TotalCost ?? 0;
+                existingPayment.PaymentDate = DateTime.Now;
+                _context.Payments.Update(existingPayment);
+            }
+            else
+            {
+                // Create new payment record
+                var payment = new Payment
+                {
+                    ReservationId = reservation.ReservationID,
+                    Amount = reservation.TotalCost ?? 0,
+                    PaymentType = "Online",
+                    PaymentDate = DateTime.Now,
+                    Status = "Completed"
+                };
+                _context.Payments.Add(payment);
+            }
+
+            // Ensure reservation is marked as Confirmed
+            reservation.Status = "Confirmed";
+            _context.Update(reservation);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Reservation confirmed successfully!";
+            return RedirectToAction(nameof(Index));
         }
 
         public async Task<IActionResult> Edit(int? id)
@@ -267,9 +331,16 @@ namespace GroupThreeTrailerParkProject.Controllers
                 return NotFound();
             }
 
+            // Check if any actual changes were made
+            bool hasChanges = existingReservation.CheckInDate != reservation.CheckInDate ||
+                             existingReservation.CheckOutDate != reservation.CheckOutDate ||
+                             existingReservation.NumAdults != reservation.NumAdults ||
+                             existingReservation.Pets != reservation.Pets ||
+                             existingReservation.SiteId != reservation.SiteId;
+
             reservation.AccountID = existingReservation.AccountID;
             reservation.CustomerName = existingReservation.CustomerName;
-            reservation.Status = existingReservation.Status;
+            reservation.Status = hasChanges ? "Pending" : existingReservation.Status;
             reservation.DateCreated = existingReservation.DateCreated;
 
             if (!IsSiteAvailable(
@@ -308,7 +379,15 @@ namespace GroupThreeTrailerParkProject.Controllers
                 _context.Update(reservation);
                 await _context.SaveChangesAsync();
 
-                return RedirectToAction(nameof(Index));
+                // Only redirect to Review if changes were made, otherwise go back to Index
+                if (hasChanges)
+                {
+                    return RedirectToAction(nameof(Review), new { id = reservation.ReservationID });
+                }
+                else
+                {
+                    return RedirectToAction(nameof(Index));
+                }
             }
 
             PopulateSitesDropDownList(reservation.SiteId);
@@ -363,6 +442,8 @@ namespace GroupThreeTrailerParkProject.Controllers
             }
 
             reservation.Status = "Canceled";
+            reservation.BaseCost = 0;
+            reservation.TotalCost = 0;
             _context.Update(reservation);
 
             await _context.SaveChangesAsync();
