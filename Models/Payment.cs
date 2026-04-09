@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -29,10 +30,8 @@ namespace GroupThreeTrailerParkProject.Models
         [MaxLength(20)]
         public string Status { get; set; } = "Pending";
 
-        // Navigation property
         public Reservation? Reservation { get; set; }
 
-        // Methods from class diagram
         public void Create()
         {
             PaymentDate = DateTime.Now;
@@ -46,17 +45,19 @@ namespace GroupThreeTrailerParkProject.Models
 
         public async Task<bool> ProcessPayment()
         {
-            // TODO: Implement Stripe payment processing
-            // Integrated with Stripe API
+            // Mark payment as completed
+            Status = "Completed";
+            PaymentDate = DateTime.Now;
             await Task.CompletedTask;
-            return false;
+            return true;
         }
 
-        public static async Task<Payment?> GetByReservationId(int reservationId)
+        public static async Task<Payment?> GetByReservationId(int reservationId, DbContext context)
         {
-            // TODO: Use repository pattern(?) to fetch payment
-            await Task.CompletedTask;
-            return null;
+            // Fetch payment by reservation ID
+            var payment = await context.Set<Payment>()
+                .FirstOrDefaultAsync(p => p.ReservationId == reservationId);
+            return payment;
         }
 
         public Payment()

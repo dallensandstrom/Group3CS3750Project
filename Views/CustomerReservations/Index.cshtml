@@ -4,6 +4,14 @@
     ViewData["Title"] = "My Reservations";
 }
 
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
 <h1>My Reservations</h1>
 
 <p>
@@ -60,12 +68,42 @@
                 <td>@Html.DisplayFor(modelItem => item.NumAdults)</td>
                 <td>@Html.DisplayFor(modelItem => item.Pets)</td>
                 <td>@Html.DisplayFor(modelItem => item.TotalCost)</td>
-                <td>@Html.DisplayFor(modelItem => item.Status)</td>
+                <td>
+                    @if (item.Status == "Pending")
+                    {
+                        <span class="badge bg-warning">Pending</span>
+                    }
+                    else if (item.Status == "Confirmed")
+                    {
+                        <span class="badge bg-success">Confirmed</span>
+                    }
+                    else if (item.Status == "Cancelled")
+                    {
+                        <span class="badge bg-danger">Cancelled</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">@item.Status</span>
+                    }
+                </td>
                 <td>@Html.DisplayFor(modelItem => item.DateCreated)</td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.ReservationID">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.ReservationID">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.ReservationID">Cancel</a>
+                    @if (item.Status == "Pending")
+                    {
+                        <a asp-action="Review" asp-route-id="@item.ReservationID" class="btn btn-sm btn-success">Complete Payment</a>
+                        <a asp-action="Edit" asp-route-id="@item.ReservationID" class="btn btn-sm btn-warning">Edit</a>
+                        <a asp-action="Delete" asp-route-id="@item.ReservationID" class="btn btn-sm btn-danger">Cancel</a>
+                    }
+                    else if (item.Status == "Confirmed")
+                    {
+                        <a asp-action="Edit" asp-route-id="@item.ReservationID" class="btn btn-sm btn-warning">Edit</a>
+                        <a asp-action="Details" asp-route-id="@item.ReservationID" class="btn btn-sm btn-info">Details</a>
+                        <a asp-action="Delete" asp-route-id="@item.ReservationID" class="btn btn-sm btn-danger">Cancel</a>
+                    }
+                    else
+                    {
+                        <a asp-action="Details" asp-route-id="@item.ReservationID" class="btn btn-sm btn-info">Details</a>
+                    }
                 </td>
             </tr>
         }

@@ -24,5 +24,17 @@ namespace GroupThreeTrailerParkProject.Data
         public DbSet<SiteFee> SiteFees { get; set; } = default!;
         public DbSet<PriceRange> PriceRanges { get; set; } = default!;
         public DbSet<GuestProfile> GuestProfiles { get; set; } = default!; //Added GuestProfiles setup -Dallen
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // Configure Payment-Reservation relationship
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.Reservation)
+                .WithMany(r => r.Payments)
+                .HasForeignKey(p => p.ReservationId)
+                .OnDelete(DeleteBehavior.Cascade);
+        }
     }
 }
