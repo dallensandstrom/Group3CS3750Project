@@ -1,5 +1,6 @@
 using GroupThreeTrailerParkProject.Data;
 using GroupThreeTrailerParkProject.Models;
+using GroupThreeTrailerParkProject.Services;
 using Microsoft.AspNetCore.Identity; //Added for identificaiton, was on default verion of web app -Dallen
 using Microsoft.EntityFrameworkCore;
 
@@ -15,6 +16,13 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddDefaultIdentity<UserAccount>(options => options.SignIn.RequireConfirmedAccount = false)
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
+
+// Register Email Service (using Mock for development/testing)
+builder.Services.AddScoped<IEmailService, MockEmailService>();
+
+// Register Background Services
+builder.Services.AddHostedService<CheckInReminderService>();
+
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();

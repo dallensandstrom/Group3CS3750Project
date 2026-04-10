@@ -81,6 +81,7 @@
     </div>
 
     <div class="d-flex gap-2">
+        <a asp-controller="CustomerReservations" asp-action="Create" asp-route-siteId="@Model.SiteId" class="btn btn-success">Reserve This Site</a>
         <a asp-action="Edit" asp-route-id="@Model.SiteId" class="btn btn-primary">Edit</a>
         <a asp-action="Index" class="btn btn-secondary">Back</a>
     </div>

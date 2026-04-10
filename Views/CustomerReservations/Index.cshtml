@@ -47,6 +47,7 @@
 <table class="table">
     <thead>
         <tr>
+            <th>Reservation #</th>
             <th>@Html.DisplayNameFor(model => model.SiteId)</th>
             <th>@Html.DisplayNameFor(model => model.CheckInDate)</th>
             <th>@Html.DisplayNameFor(model => model.CheckOutDate)</th>
@@ -62,6 +63,7 @@
         @foreach (var item in Model)
         {
             <tr>
+                <td><strong>@item.ReservationID</strong></td>
                 <td>@Html.DisplayFor(modelItem => item.SiteId)</td>
                 <td>@Html.DisplayFor(modelItem => item.CheckInDate)</td>
                 <td>@Html.DisplayFor(modelItem => item.CheckOutDate)</td>

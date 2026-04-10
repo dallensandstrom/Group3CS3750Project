@@ -1,5 +1,6 @@
 ﻿using GroupThreeTrailerParkProject.Data;
 using GroupThreeTrailerParkProject.Models;
+using GroupThreeTrailerParkProject.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -13,13 +14,16 @@ namespace GroupThreeTrailerParkProject.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<UserAccount> _userManager;
+        private readonly IEmailService _emailService;
 
         public CustomerReservationsController(
             ApplicationDbContext context,
-            UserManager<UserAccount> userManager)
+            UserManager<UserAccount> userManager,
+            IEmailService emailService)
         {
             _context = context;
             _userManager = userManager;
+            _emailService = emailService;
         }
 
         public async Task<IActionResult> Index(
@@ -142,12 +146,13 @@ namespace GroupThreeTrailerParkProject.Controllers
             return View(reservation);
         }
 
-        public IActionResult Create()
+        public IActionResult Create(int? siteId)
         {
-            PopulateSitesDropDownList();
+            PopulateSitesDropDownList(siteId);
 
             return View(new Reservation
             {
+                SiteId = siteId ?? 0,
                 CheckInDate = DateTime.Today,
                 CheckOutDate = DateTime.Today.AddDays(1)
             });
@@ -272,6 +277,22 @@ namespace GroupThreeTrailerParkProject.Controllers
             _context.Update(reservation);
             await _context.SaveChangesAsync();
 
+            // Send payment confirmation email
+            var guestEmail = await GetGuestEmailFromReservationAsync(id);
+            if (!string.IsNullOrEmpty(guestEmail))
+            {
+                await _emailService.SendPaymentConfirmationEmailAsync(
+                    guestEmail,
+                    reservation.CustomerName,
+                    reservation.ReservationID,
+                    reservation.CheckInDate,
+                    reservation.CheckOutDate,
+                    reservation.SiteId,
+                    reservation.TotalCost ?? 0,
+                    reservation.ExtraNotes ?? ""
+                );
+            }
+
             TempData["SuccessMessage"] = "Reservation confirmed successfully!";
             return RedirectToAction(nameof(Index));
         }
@@ -379,6 +400,32 @@ namespace GroupThreeTrailerParkProject.Controllers
                 _context.Update(reservation);
                 await _context.SaveChangesAsync();
 
+                // Send reservation modified email if it was already confirmed and changes were made
+                if (hasChanges && existingReservation.Status == "Confirmed")
+                {
+                    var guestEmail = await GetGuestEmailFromReservationAsync(id);
+                    if (!string.IsNullOrEmpty(guestEmail))
+                    {
+                        await _emailService.SendReservationModifiedEmailAsync(
+                            guestEmail,
+                            reservation.CustomerName,
+                            reservation.ReservationID,
+                            existingReservation.CheckInDate,
+                            reservation.CheckInDate,
+                            existingReservation.CheckOutDate,
+                            reservation.CheckOutDate,
+                            existingReservation.SiteId,
+                            reservation.SiteId,
+                            existingReservation.NumAdults,
+                            reservation.NumAdults,
+                            existingReservation.Pets,
+                            reservation.Pets,
+                            existingReservation.TotalCost ?? 0,
+                            reservation.TotalCost ?? 0
+                        );
+                    }
+                }
+
                 // Only redirect to Review if changes were made, otherwise go back to Index
                 if (hasChanges)
                 {
@@ -441,12 +488,34 @@ namespace GroupThreeTrailerParkProject.Controllers
                 return NotFound();
             }
 
+            // Store original values before canceling
+            var originalCheckInDate = reservation.CheckInDate;
+            var originalCheckOutDate = reservation.CheckOutDate;
+            var originalSiteId = reservation.SiteId;
+            var originalTotalCost = reservation.TotalCost ?? 0;
+            var customerName = reservation.CustomerName;
+
             reservation.Status = "Canceled";
             reservation.BaseCost = 0;
             reservation.TotalCost = 0;
             _context.Update(reservation);
 
             await _context.SaveChangesAsync();
+
+            // Send cancellation email
+            var guestEmail = await GetGuestEmailFromReservationAsync(id);
+            if (!string.IsNullOrEmpty(guestEmail))
+            {
+                await _emailService.SendReservationCanceledEmailAsync(
+                    guestEmail,
+                    customerName,
+                    id,
+                    originalCheckInDate,
+                    originalCheckOutDate,
+                    originalSiteId,
+                    originalTotalCost
+                );
+            }
 
             return RedirectToAction(nameof(Index));
         }
@@ -705,6 +774,21 @@ namespace GroupThreeTrailerParkProject.Controllers
             }
 
             return text;
+        }
+
+        private async Task<string?> GetGuestEmailFromReservationAsync(int reservationId)
+        {
+            var reservation = await _context.Reservations
+                .FirstOrDefaultAsync(r => r.ReservationID == reservationId);
+
+            if (reservation == null)
+                return null;
+
+            var guestProfile = await _context.GuestProfiles
+                .Include(g => g.UserAccount)
+                .FirstOrDefaultAsync(g => g.Id == reservation.AccountID);
+
+            return guestProfile?.UserAccount?.Email;
         }
     }
 }
