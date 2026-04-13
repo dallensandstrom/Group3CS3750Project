@@ -135,7 +135,7 @@ namespace GroupThreeTrailerParkProject.Controllers
             return View(reservation);
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Employee,Admin")]
         public IActionResult Create()
         {
             PopulateSitesDropDownList();
@@ -149,7 +149,7 @@ namespace GroupThreeTrailerParkProject.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Employee, Admin")]
         public async Task<IActionResult> Create(Reservation reservation)
         {
             if (!IsSiteAvailable(reservation.SiteId, reservation.CheckInDate, reservation.CheckOutDate))
@@ -200,7 +200,7 @@ namespace GroupThreeTrailerParkProject.Controllers
             return View(reservation);
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Employee,Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -225,7 +225,7 @@ namespace GroupThreeTrailerParkProject.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Employee, Admin")]
         public async Task<IActionResult> Edit(int id, Reservation reservation)
         {
             if (id != reservation.ReservationID)
@@ -285,7 +285,7 @@ namespace GroupThreeTrailerParkProject.Controllers
             return View(reservation);
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Employee, Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -305,7 +305,7 @@ namespace GroupThreeTrailerParkProject.Controllers
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Employee, Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var reservation = await _context.Reservations.FindAsync(id);
