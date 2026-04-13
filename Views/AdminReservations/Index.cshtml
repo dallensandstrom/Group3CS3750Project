@@ -7,30 +7,52 @@
 @inject UserManager<UserAccount> UserManager
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Admin Reservations";
 }
 
-<h1>Index</h1>
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<h1>Admin Reservations</h1>
+
 @if (User.IsInRole("Admin") || User.IsInRole("Employee"))
 {
     <p>
-        <a asp-action="Create">Create New</a>
+        <a asp-action="Create" class="btn btn-primary">Create New Reservation</a>
     </p>
 }
+
 <form asp-action="Index" method="get" class="row g-3 mb-3">
     <div class="col-md-2">
         <label class="form-label">Search</label>
-        <input type="text" name="searchString" value="@ViewBag.SearchString" class="form-control" placeholder="Customer or ID" />
+        <input type="text"
+               name="searchString"
+               value="@ViewBag.SearchString"
+               class="form-control"
+               placeholder="Customer or ID" />
     </div>
 
     <div class="col-md-2">
         <label class="form-label">Start Date</label>
-        <input type="date" name="startDate" value="@ViewBag.StartDate" class="form-control" />
+        <input type="date"
+               id="startDate"
+               name="startDate"
+               value="@ViewBag.StartDate"
+               class="form-control" />
     </div>
 
     <div class="col-md-2">
         <label class="form-label">End Date</label>
-        <input type="date" name="endDate" value="@ViewBag.EndDate" class="form-control" />
+        <input type="date"
+               id="endDate"
+               name="endDate"
+               value="@ViewBag.EndDate"
+               class="form-control" />
     </div>
 
     <div class="col-md-2">
@@ -48,97 +70,104 @@
         <a asp-action="Index" class="btn btn-secondary">Clear</a>
     </div>
 </form>
+
 <table class="table">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.AccountID)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.SiteId)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CheckInDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CheckOutDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.NumAdults)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Pets)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.BaseCost)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TotalCost)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Status)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DateCreated)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ExtraNotes)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CustomerName)
-            </th>
+            <th>Reservation ID</th>
+            <th>Customer</th>
+            <th>Account ID</th>
+            <th>Site</th>
+            <th>Check In</th>
+            <th>Check Out</th>
+            <th>Adults</th>
+            <th>Pets</th>
+            <th>Base Cost</th>
+            <th>Total Cost</th>
+            <th>Status</th>
+            <th>Date Created</th>
+            <th>Extra Notes</th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.AccountID)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.SiteId)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CheckInDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CheckOutDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.NumAdults)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Pets)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.BaseCost)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TotalCost)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Status)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DateCreated)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ExtraNotes)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CustomerName)
-            </td>
-            @if (User.IsInRole("Admin") || User.IsInRole("Employee"))
-            {
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.ReservationID</td>
+                <td>@item.CustomerName</td>
+                <td>@item.AccountID</td>
+                <td>@item.SiteId</td>
+                <td>@Html.DisplayFor(modelItem => item.CheckInDate)</td>
+                <td>@Html.DisplayFor(modelItem => item.CheckOutDate)</td>
+                <td>@item.NumAdults</td>
+                <td>@item.Pets</td>
+                <td>@Html.DisplayFor(modelItem => item.BaseCost)</td>
+                <td>@Html.DisplayFor(modelItem => item.TotalCost)</td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.ReservationID">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.ReservationID">Details</a> |
-                        <a asp-action="Delete" asp-route-id="@item.ReservationID">Cancel</a>
+                    @if (item.Status == "Pending")
+                    {
+                        <span class="badge bg-warning text-dark">Pending</span>
+                    }
+                    else if (item.Status == "Confirmed")
+                    {
+                        <span class="badge bg-success">Confirmed</span>
+                    }
+                    else if (item.Status == "Canceled")
+                    {
+                        <span class="badge bg-danger">Canceled</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">@item.Status</span>
+                    }
                 </td>
-            }
-
-        </tr>
-}
+                <td>@Html.DisplayFor(modelItem => item.DateCreated)</td>
+                <td>@item.ExtraNotes</td>
+                <td>
+                    @if (User.IsInRole("Admin") || User.IsInRole("Employee"))
+                    {
+                        <a asp-action="Edit" asp-route-id="@item.ReservationID" class="btn btn-sm btn-warning">Edit</a>
+                        <a asp-action="Details" asp-route-id="@item.ReservationID" class="btn btn-sm btn-info">Details</a>
+                        <a asp-action="Delete" asp-route-id="@item.ReservationID" class="btn btn-sm btn-danger">Cancel</a>
+                    }
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const startDate = document.getElementById("startDate");
+            const endDate = document.getElementById("endDate");
+
+            if (!startDate || !endDate) return;
+
+            function updateDateLimits() {
+                if (startDate.value) {
+                    endDate.min = startDate.value;
+                } else {
+                    endDate.removeAttribute("min");
+                }
+            }
+
+            startDate.addEventListener("change", function () {
+                updateDateLimits();
+
+                if (endDate.value && endDate.value < startDate.value) {
+                    endDate.value = "";
+                }
+            });
+
+            endDate.addEventListener("change", function () {
+                if (startDate.value && endDate.value && endDate.value < startDate.value) {
+                    endDate.value = "";
+                }
+            });
+
+            updateDateLimits();
+        });
+    </script>
+}

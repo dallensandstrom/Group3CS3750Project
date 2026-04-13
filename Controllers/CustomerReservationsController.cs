@@ -23,10 +23,10 @@ namespace GroupThreeTrailerParkProject.Controllers
         }
 
         public async Task<IActionResult> Index(
-    DateTime? startDate,
-    DateTime? endDate,
-    string? status,
-    string? petFilter)
+        DateTime? startDate,
+        DateTime? endDate,
+        string? status,
+        string? petFilter)
         {
             var accountId = await GetCurrentGuestAccountIdAsync();
             if (accountId == null)
@@ -169,12 +169,12 @@ namespace GroupThreeTrailerParkProject.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
-            [Bind("ReservationId,SiteId,CheckInDate,CheckOutDate,Status")] Reservation reservation,
+            [Bind("ReservationID,SiteId,CheckInDate,CheckOutDate,NumAdults,Pets,ExtraNotes")] Reservation reservation,
             string? returnTo,
             int? siteCategoryId,
             int? minVehicleSize,
-            DateTime? checkInDate,
-            DateTime? checkOutDate)
+            string? returnCheckInDate,
+            string? returnCheckOutDate)
         {
             var currentUser = await _userManager.GetUserAsync(User);
             var accountId = await GetCurrentGuestAccountIdAsync();
@@ -230,8 +230,8 @@ namespace GroupThreeTrailerParkProject.Controllers
             ViewBag.ReturnTo = returnTo;
             ViewBag.ReturnSiteCategoryId = siteCategoryId;
             ViewBag.ReturnMinVehicleSize = minVehicleSize;
-            ViewBag.ReturnCheckInDate = checkInDate?.ToString("yyyy-MM-dd");
-            ViewBag.ReturnCheckOutDate = checkOutDate?.ToString("yyyy-MM-dd");
+            ViewBag.ReturnCheckInDate = returnCheckInDate;
+            ViewBag.ReturnCheckOutDate = returnCheckOutDate;
 
             PopulateSitesDropDownList(reservation.SiteId);
             return View(reservation);

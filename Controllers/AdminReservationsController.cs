@@ -143,7 +143,9 @@ namespace GroupThreeTrailerParkProject.Controllers
 
             return View(new Reservation
             {
-                Status = "Pending"
+                Status = "Pending",
+                CheckInDate = DateTime.Today,
+                CheckOutDate = DateTime.Today.AddDays(1)
             });
         }
 

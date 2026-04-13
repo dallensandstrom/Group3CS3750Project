@@ -22,22 +22,22 @@
     <div class="col-md-3">
         <label class="form-label">Start Date</label>
         <input type="date"
-           id="checkInDate"
-           name="checkInDate"
-           value="@ViewBag.CheckInDate"
-           min="@DateTime.Today.ToString("yyyy-MM-dd")"
-           class="form-control" />
-</div>
+               id="startDate"
+               name="startDate"
+               value="@ViewBag.StartDate"
+               min="@DateTime.Today.ToString("yyyy-MM-dd")"
+               class="form-control" />
+    </div>
 
     <div class="col-md-3">
         <label class="form-label">End Date</label>
         <input type="date"
-           id="checkOutDate"
-           name="checkOutDate"
-           value="@ViewBag.CheckOutDate"
-           min="@DateTime.Today.ToString("yyyy-MM-dd")"
-           class="form-control" />
-</div>
+               id="endDate"
+               name="endDate"
+               value="@ViewBag.EndDate"
+               min="@DateTime.Today.ToString("yyyy-MM-dd")"
+               class="form-control" />
+    </div>
 
     <div class="col-md-2">
         <label class="form-label">Status</label>
@@ -54,6 +54,7 @@
         <a asp-action="Index" class="btn btn-secondary">Clear</a>
     </div>
 </form>
+
 <table class="table">
     <thead>
         <tr>
@@ -87,9 +88,9 @@
                     {
                         <span class="badge bg-success">Confirmed</span>
                     }
-                    else if (item.Status == "Cancelled")
+                    else if (item.Status == "Canceled")
                     {
-                        <span class="badge bg-danger">Cancelled</span>
+                        <span class="badge bg-danger">Canceled</span>
                     }
                     else
                     {
@@ -120,35 +121,34 @@
     </tbody>
 </table>
 
-
 @section Scripts {
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            const checkIn = document.getElementById("checkInDate");
-            const checkOut = document.getElementById("checkOutDate");
+            const startDate = document.getElementById("startDate");
+            const endDate = document.getElementById("endDate");
             const today = "@DateTime.Today.ToString("yyyy-MM-dd")";
 
-            if (!checkIn || !checkOut) return;
+            if (!startDate || !endDate) return;
 
             function updateDateLimits() {
-                if (checkIn.value) {
-                    checkOut.min = checkIn.value;
+                if (startDate.value) {
+                    endDate.min = startDate.value;
                 } else {
-                    checkOut.min = today;
+                    endDate.min = today;
                 }
             }
 
-            checkIn.addEventListener("change", function () {
+            startDate.addEventListener("change", function () {
                 updateDateLimits();
 
-                if (checkOut.value && checkOut.value < checkIn.value) {
-                    checkOut.value = "";
+                if (endDate.value && endDate.value < startDate.value) {
+                    endDate.value = "";
                 }
             });
 
-            checkOut.addEventListener("change", function () {
-                if (checkOut.value && checkIn.value && checkOut.value < checkIn.value) {
-                    checkOut.value = "";
+            endDate.addEventListener("change", function () {
+                if (endDate.value && startDate.value && endDate.value < startDate.value) {
+                    endDate.value = "";
                 }
             });
 
