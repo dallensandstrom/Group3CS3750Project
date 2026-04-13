@@ -1,6 +1,10 @@
 ﻿@model IEnumerable<GroupThreeTrailerParkProject.Models.Site>
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Identity
+
 @inject GroupThreeTrailerParkProject.Data.ApplicationDbContext _context
+@inject SignInManager<UserAccount> SignInManager
+@inject UserManager<UserAccount> UserManager
 
 @{
     ViewData["Title"] = "Site Catalog";
@@ -9,11 +13,56 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Site Catalog</h2>
-        <div>
-            <a asp-controller="Site" asp-action="Create" class="btn btn-primary me-2">Create Site</a>
-            <a asp-controller="Site" asp-action="CategoryManage" class="btn btn-secondary">Site Categories</a>
-        </div>
+        @if (SignInManager.IsSignedIn(User))
+        {
+            if (User.IsInRole("Admin"))
+            {
+                <div>
+                    <a asp-controller="Site" asp-action="Create" class="btn btn-primary me-2">Create Site</a>
+                    <a asp-controller="Site" asp-action="CategoryManage" class="btn btn-secondary">Site Categories</a>
+                </div>
+            }
+        }
     </div>
+
+    <form asp-action="Index" method="get" class="row g-3 mb-4">
+        <div class="col-md-3">
+            <label class="form-label">Category</label>
+            <select name="siteCategoryId" asp-items="ViewBag.SiteCategoryId" class="form-select">
+                <option value="">All Categories</option>
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <label class="form-label">Min Vehicle Size</label>
+            <input type="number" name="minVehicleSize" value="@ViewBag.MinVehicleSize" class="form-control" />
+        </div>
+
+        <div class="col-md-2">
+    <label class="form-label">Check In</label>
+    <input type="date"
+           id="checkInDate"
+           name="checkInDate"
+           value="@ViewBag.CheckInDate"
+           min="@DateTime.Today.ToString("yyyy-MM-dd")"
+           class="form-control" />
+</div>
+
+<div class="col-md-2">
+    <label class="form-label">Check Out</label>
+    <input type="date"
+           id="checkOutDate"
+           name="checkOutDate"
+           value="@ViewBag.CheckOutDate"
+           min="@DateTime.Today.ToString("yyyy-MM-dd")"
+           class="form-control" />
+</div>
+
+        <div class="col-md-3 d-flex align-items-end gap-2">
+            <button type="submit" class="btn btn-primary">Filter</button>
+            <a asp-action="Index" class="btn btn-secondary">Clear</a>
+        </div>
+    </form>
 
     <div class="row">
         @foreach (var site in Model)
@@ -29,24 +78,76 @@
                     }
 
                     <img src="@(string.IsNullOrEmpty(firstPhotoUrl)
-                                    ? "https://via.placeholder.com/300x200?text=Site"
-                                    : firstPhotoUrl)"
-                         class="card-img-top"
-                         alt="Site Photo"
-                         style="height: 200px; object-fit: cover;" />
+                                                                                                                              ? "https://via.placeholder.com/300x200?text=Site"
+                                                                                                                              : firstPhotoUrl)" class="card-img-top"
+                         alt="Site Photo" style="height: 200px; object-fit: cover;" />
 
                     <div class="card-body text-center">
                         <h5 class="card-title">Site @site.SiteId</h5>
+                        <p class="mb-1">@site.SiteCategory?.Name</p>
+                        <p class="mb-2">Max Vehicle Size: @site.MaxVehicleSize</p>
 
-                        <a asp-controller="Site"
-                           asp-action="Details"
-                           asp-route-id="@site.SiteId"
-                           class="btn btn-outline-primary">
+                        <a asp-controller="Site" asp-action="Details" asp-route-id="@site.SiteId"
+                               class="btn btn-outline-primary">
                             Details
                         </a>
+
+                        @if (SignInManager.IsSignedIn(User) && User.IsInRole("Guest"))
+                        {
+                            <a asp-controller="CustomerReservations"
+                            asp-action="Create"
+                            asp-route-siteId="@site.SiteId"
+                            asp-route-checkInDate="@ViewBag.CheckInDate"
+                            asp-route-checkOutDate="@ViewBag.CheckOutDate"
+                            asp-route-siteCategoryId="@Context.Request.Query["siteCategoryId"]"
+                            asp-route-minVehicleSize="@Context.Request.Query["minVehicleSize"]"
+                            asp-route-returnTo="catalog"
+                            class="btn btn-success">
+                            Reserve
+                            </a>
+                        }
                     </div>
                 </div>
             </div>
         }
     </div>
 </div>
+
+
+
+
+
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const checkIn = document.getElementById("checkInDate");
+            const checkOut = document.getElementById("checkOutDate");
+            const today = "@DateTime.Today.ToString("yyyy-MM-dd")";
+
+            function updateDateLimits() {
+                if (checkIn.value) {
+                    checkOut.min = checkIn.value;
+                } else {
+                    checkOut.min = today;
+                }
+            }
+
+            checkIn.addEventListener("change", function () {
+                updateDateLimits();
+
+                if (checkOut.value && checkOut.value < checkIn.value) {
+                    checkOut.value = "";
+                }
+            });
+
+            checkOut.addEventListener("change", function () {
+                if (checkOut.value && checkIn.value && checkOut.value < checkIn.value) {
+                    checkOut.value = "";
+                }
+            });
+
+            updateDateLimits();
+        });
+    </script>
+}

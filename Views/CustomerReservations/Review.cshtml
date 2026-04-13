@@ -1,0 +1,57 @@
+@model Reservation
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h1>Review Your Reservation</h1>
+
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Reservation Details</h5>
+                    <p><strong>Name:</strong> @Model.CustomerName</p>
+                    <p><strong>Site:</strong> @Model.SiteId</p>
+                    <p><strong>Check-In:</strong> @Model.CheckInDate.ToString("yyyy-MM-dd")</p>
+                    <p><strong>Check-Out:</strong> @Model.CheckOutDate.ToString("yyyy-MM-dd")</p>
+                    <p><strong>Adults:</strong> @Model.NumAdults</p>
+                    <p><strong>Pets:</strong> @Model.Pets</p>
+                </div>
+            </div>
+
+            <div class="card mb-4 border-success">
+                <div class="card-body">
+                    <h5 class="card-title text-success">Cost Breakdown</h5>
+                    <p><strong>Base Cost:</strong> $@Model.BaseCost?.ToString("F2")</p>
+                    @if (!string.IsNullOrEmpty(Model.ExtraNotes))
+                    {
+                        var lines = Model.ExtraNotes.Split(new[] { "\n" }, StringSplitOptions.None);
+                        var feesLine = lines.FirstOrDefault();
+                        var notesLine = lines.Skip(1).FirstOrDefault();
+
+                        if (!string.IsNullOrEmpty(feesLine))
+                        {
+                            <p><strong>@feesLine</strong></p>
+                        }
+                        if (!string.IsNullOrEmpty(notesLine))
+                        {
+                            <p><strong>@notesLine</strong></p>
+                        }
+                    }
+                    <hr />
+                    <h6 class="text-success"><strong>Total Cost: $@Model.TotalCost?.ToString("F2")</strong></h6>
+                </div>
+            </div>
+
+            <form method="post" asp-action="ConfirmPayment" asp-route-id="@Model.ReservationID" class="mb-3">
+                @if (Model.Status == "Pending")
+                {
+                    <button type="submit" class="btn btn-success">Confirm & Complete Payment</button>
+                }
+                else
+                {
+                    <button type="submit" class="btn btn-primary">Update Payment Amount</button>
+                }
+                <a href="@Url.Action("Index")" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>

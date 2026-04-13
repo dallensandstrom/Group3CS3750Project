@@ -114,12 +114,16 @@ namespace GroupThreeTrailerParkProject.Areas.Identity.Pages.Account
             {
                 //Dallen Addition to allow for account disabling, ChatGPT suggestion
                 var user = await _userManager.FindByEmailAsync(Input.Email);
-                if (user == null || !user.IsEnabled)
+                if (user == null)
+                {
+                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                    return Page();
+                }
+                if (!user.IsEnabled)
                 {
                     ModelState.AddModelError(string.Empty, "This account is disabled.");
                     return Page();
                 }
-
 
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true

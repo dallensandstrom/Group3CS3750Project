@@ -25,9 +25,19 @@
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <b><a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a></b>
-                        </li>
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            <li class="nav-item">
+                                <b><a class="nav-link text-dark" asp-area="" asp-controller="Site" asp-action="Index">Sites</a></b>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <b><a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a></b>
+                            </li>
+                        }
+
                         <!--
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
@@ -53,9 +63,11 @@
                                        asp-action="Index">My Reservations</a>
                                 </li>
                             }
+                            <!-- Dallen Sandstrom Edit
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Site" asp-action="Index">Sites</a>
                             </li>
+                            -->
                         }
                     </ul>
                     <!--De-Commented (Dallen)-->

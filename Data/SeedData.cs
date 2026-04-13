@@ -159,6 +159,36 @@ await context.SaveChangesAsync();
             context.SaveChanges();
         }
 
+        // Seed matching Payment records for confirmed reservations
+        if (!context.Payments.Any())
+        {
+            var johnReservation = context.Reservations.FirstOrDefault(r => r.CustomerName == "John Smith");
+            var maryReservation = context.Reservations.FirstOrDefault(r => r.CustomerName == "Mary Johnson");
+
+            if (johnReservation != null && maryReservation != null)
+            {
+                context.Payments.AddRange(
+                    new Payment
+                    {
+                        ReservationId = johnReservation.ReservationID,
+                        Amount = johnReservation.TotalCost ?? 0,
+                        PaymentDate = DateTime.Now,
+                        PaymentType = "Online",
+                        Status = "Completed"
+                    },
+                    new Payment
+                    {
+                        ReservationId = maryReservation.ReservationID,
+                        Amount = maryReservation.TotalCost ?? 0,
+                        PaymentDate = DateTime.Now,
+                        PaymentType = "Online",
+                        Status = "Completed"
+                    }
+                );
+                context.SaveChanges();
+            }
+        }
+
         if (!context.Fees.Any(f => f.Name == "Independence Day Fee"))
         {
             context.Fees.Add(
@@ -175,7 +205,7 @@ await context.SaveChangesAsync();
             context.SaveChanges();
         }
         //Currently required to link a fee to a site logic needs to be added elsewhere
-        if (!context.SiteFees.Any(sf => sf.SiteId == 1 && sf.Fee.Name == "Independence Day Fee"))
+        if (!context.SiteFees.Any(sf => sf.SiteId == 1 && sf.Fee != null && sf.Fee.Name == "Independence Day Fee"))
         {
             var site1 = context.Site.FirstOrDefault(s => s.SiteId == 1);
             var july4Fee = context.Fees.FirstOrDefault(f => f.Name == "Independence Day Fee");

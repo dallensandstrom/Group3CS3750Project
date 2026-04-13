@@ -4,22 +4,40 @@
     ViewData["Title"] = "My Reservations";
 }
 
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
 <h1>My Reservations</h1>
 
 <p>
-    <a asp-action="Create" class="btn btn-primary">Create New Reservation</a>
+    <a asp-action="Create" asp-route-returnTo="list" class="btn btn-primary">Create New Reservation</a>
 </p>
 
 <form asp-action="Index" method="get" class="row g-3 mb-3">
     <div class="col-md-3">
         <label class="form-label">Start Date</label>
-        <input type="date" name="startDate" value="@ViewBag.StartDate" class="form-control" />
-    </div>
+        <input type="date"
+           id="checkInDate"
+           name="checkInDate"
+           value="@ViewBag.CheckInDate"
+           min="@DateTime.Today.ToString("yyyy-MM-dd")"
+           class="form-control" />
+</div>
 
     <div class="col-md-3">
         <label class="form-label">End Date</label>
-        <input type="date" name="endDate" value="@ViewBag.EndDate" class="form-control" />
-    </div>
+        <input type="date"
+           id="checkOutDate"
+           name="checkOutDate"
+           value="@ViewBag.CheckOutDate"
+           min="@DateTime.Today.ToString("yyyy-MM-dd")"
+           class="form-control" />
+</div>
 
     <div class="col-md-2">
         <label class="form-label">Status</label>
@@ -60,14 +78,81 @@
                 <td>@Html.DisplayFor(modelItem => item.NumAdults)</td>
                 <td>@Html.DisplayFor(modelItem => item.Pets)</td>
                 <td>@Html.DisplayFor(modelItem => item.TotalCost)</td>
-                <td>@Html.DisplayFor(modelItem => item.Status)</td>
+                <td>
+                    @if (item.Status == "Pending")
+                    {
+                        <span class="badge bg-warning">Pending</span>
+                    }
+                    else if (item.Status == "Confirmed")
+                    {
+                        <span class="badge bg-success">Confirmed</span>
+                    }
+                    else if (item.Status == "Cancelled")
+                    {
+                        <span class="badge bg-danger">Cancelled</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">@item.Status</span>
+                    }
+                </td>
                 <td>@Html.DisplayFor(modelItem => item.DateCreated)</td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.ReservationID">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.ReservationID">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.ReservationID">Cancel</a>
+                    @if (item.Status == "Pending")
+                    {
+                        <a asp-action="Review" asp-route-id="@item.ReservationID" class="btn btn-sm btn-success">Complete Payment</a>
+                        <a asp-action="Edit" asp-route-id="@item.ReservationID" class="btn btn-sm btn-warning">Edit</a>
+                        <a asp-action="Delete" asp-route-id="@item.ReservationID" class="btn btn-sm btn-danger">Cancel</a>
+                    }
+                    else if (item.Status == "Confirmed")
+                    {
+                        <a asp-action="Edit" asp-route-id="@item.ReservationID" class="btn btn-sm btn-warning">Edit</a>
+                        <a asp-action="Details" asp-route-id="@item.ReservationID" class="btn btn-sm btn-info">Details</a>
+                        <a asp-action="Delete" asp-route-id="@item.ReservationID" class="btn btn-sm btn-danger">Cancel</a>
+                    }
+                    else
+                    {
+                        <a asp-action="Details" asp-route-id="@item.ReservationID" class="btn btn-sm btn-info">Details</a>
+                    }
                 </td>
             </tr>
         }
     </tbody>
 </table>
+
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const checkIn = document.getElementById("checkInDate");
+            const checkOut = document.getElementById("checkOutDate");
+            const today = "@DateTime.Today.ToString("yyyy-MM-dd")";
+
+            if (!checkIn || !checkOut) return;
+
+            function updateDateLimits() {
+                if (checkIn.value) {
+                    checkOut.min = checkIn.value;
+                } else {
+                    checkOut.min = today;
+                }
+            }
+
+            checkIn.addEventListener("change", function () {
+                updateDateLimits();
+
+                if (checkOut.value && checkOut.value < checkIn.value) {
+                    checkOut.value = "";
+                }
+            });
+
+            checkOut.addEventListener("change", function () {
+                if (checkOut.value && checkIn.value && checkOut.value < checkIn.value) {
+                    checkOut.value = "";
+                }
+            });
+
+            updateDateLimits();
+        });
+    </script>
+}

@@ -1,4 +1,8 @@
 ﻿@model GroupThreeTrailerParkProject.Models.Site
+@using Microsoft.AspNetCore.Identity
+
+@inject SignInManager<UserAccount> SignInManager
+@inject UserManager<UserAccount> UserManager
 
 @{
     ViewData["Title"] = "Site Details";
@@ -14,7 +18,11 @@
 
             <p><strong>Category:</strong> @(Model.SiteCategory?.Name ?? "None")</p>
             <p><strong>Max Vehicle Size:</strong> @Model.MaxVehicleSize</p>
-            <p><strong>Visible To Client:</strong> @(Model.VisibleToClient ? "Yes" : "No")</p>
+            @if (SignInManager.IsSignedIn(User) && User.IsInRole("Admin") || User.IsInRole("Employee"))
+            {
+                <p><strong>Visible To Client:</strong> @(Model.VisibleToClient ? "Yes" : "No")</p>
+            }
+
         </div>
     </div>
 
@@ -81,7 +89,21 @@
     </div>
 
     <div class="d-flex gap-2">
+    @if (SignInManager.IsSignedIn(User) && User.IsInRole("Admin"))
+    {
         <a asp-action="Edit" asp-route-id="@Model.SiteId" class="btn btn-primary">Edit</a>
-        <a asp-action="Index" class="btn btn-secondary">Back</a>
-    </div>
+    }
+
+     @if (SignInManager.IsSignedIn(User) && User.IsInRole("Guest"))
+    {
+        <a asp-controller="CustomerReservations"
+           asp-action="Create"
+           asp-route-siteId="@Model.SiteId"
+           class="btn btn-success">
+            Reserve
+        </a>
+    }
+
+    <a asp-action="Index" class="btn btn-secondary">Back</a>
+</div>
 </div>
