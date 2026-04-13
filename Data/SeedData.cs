@@ -20,6 +20,10 @@ public static class SeedData
         new SiteCategory
         {
             Name = "Standard RV Site"
+        },
+        new SiteCategory
+        { 
+            Name = "Back-In Trailer Site"
         }
     );
 }
@@ -30,14 +34,22 @@ await context.SaveChangesAsync();
 if (!context.PriceRanges.Any())
 {
     var category = context.SiteCategory.First();
+    var categoryOther = context.SiteCategory.ElementAt(1);
 
-    context.PriceRanges.Add(
+    context.PriceRanges.AddRange(
         new PriceRange
         {
             SiteCategoryId = category.SiteCategoryId,
             Price = 45.00m,
             StartDate = new DateTime(2026, 1, 1),
             EndDate = null // stays forever
+        },
+        new PriceRange
+        {
+            SiteCategoryId = categoryOther.SiteCategoryId,
+            Price = 25.00m,
+            StartDate = new DateTime(2026, 1, 1),
+            EndDate = null
         }
     );
 }
@@ -48,12 +60,37 @@ await context.SaveChangesAsync();
 if (!context.Site.Any())
 {
     var category = context.SiteCategory.First();
+    var categoryOther = context.SiteCategory.ElementAt(1);
 
-    context.Site.Add(
+    context.Site.AddRange(
         new Site
         {
             SiteCategoryId = category.SiteCategoryId,
             MaxVehicleSize = 40,
+            VisibleToClient = true
+        },
+        new Site
+        {
+            SiteCategoryId = category.SiteCategoryId,
+            MaxVehicleSize = 40,
+            VisibleToClient = false
+        },
+        new Site
+        {
+            SiteCategoryId = category.SiteCategoryId,
+            MaxVehicleSize = 35,
+            VisibleToClient = true
+        },
+        new Site
+        {
+            SiteCategoryId = categoryOther.SiteCategoryId,
+            MaxVehicleSize = 24,
+            VisibleToClient = true
+        },
+        new Site
+        {
+            SiteCategoryId = categoryOther.SiteCategoryId,
+            MaxVehicleSize = 24,
             VisibleToClient = true
         }
     );
@@ -110,6 +147,7 @@ await context.SaveChangesAsync();
             role: "Guest",
             dodAffiliation: DODAffiliation.Other,
             dodStatus: DODStatus.Retired);
+
         await SeedUser(
             userManager,
             context,
