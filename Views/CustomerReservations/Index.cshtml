@@ -15,19 +15,29 @@
 <h1>My Reservations</h1>
 
 <p>
-    <a asp-action="Create" class="btn btn-primary">Create New Reservation</a>
+    <a asp-action="Create" asp-route-returnTo="list" class="btn btn-primary">Create New Reservation</a>
 </p>
 
 <form asp-action="Index" method="get" class="row g-3 mb-3">
     <div class="col-md-3">
         <label class="form-label">Start Date</label>
-        <input type="date" name="startDate" value="@ViewBag.StartDate" class="form-control" />
-    </div>
+        <input type="date"
+           id="checkInDate"
+           name="checkInDate"
+           value="@ViewBag.CheckInDate"
+           min="@DateTime.Today.ToString("yyyy-MM-dd")"
+           class="form-control" />
+</div>
 
     <div class="col-md-3">
         <label class="form-label">End Date</label>
-        <input type="date" name="endDate" value="@ViewBag.EndDate" class="form-control" />
-    </div>
+        <input type="date"
+           id="checkOutDate"
+           name="checkOutDate"
+           value="@ViewBag.CheckOutDate"
+           min="@DateTime.Today.ToString("yyyy-MM-dd")"
+           class="form-control" />
+</div>
 
     <div class="col-md-2">
         <label class="form-label">Status</label>
@@ -109,3 +119,40 @@
         }
     </tbody>
 </table>
+
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const checkIn = document.getElementById("checkInDate");
+            const checkOut = document.getElementById("checkOutDate");
+            const today = "@DateTime.Today.ToString("yyyy-MM-dd")";
+
+            if (!checkIn || !checkOut) return;
+
+            function updateDateLimits() {
+                if (checkIn.value) {
+                    checkOut.min = checkIn.value;
+                } else {
+                    checkOut.min = today;
+                }
+            }
+
+            checkIn.addEventListener("change", function () {
+                updateDateLimits();
+
+                if (checkOut.value && checkOut.value < checkIn.value) {
+                    checkOut.value = "";
+                }
+            });
+
+            checkOut.addEventListener("change", function () {
+                if (checkOut.value && checkIn.value && checkOut.value < checkIn.value) {
+                    checkOut.value = "";
+                }
+            });
+
+            updateDateLimits();
+        });
+    </script>
+}

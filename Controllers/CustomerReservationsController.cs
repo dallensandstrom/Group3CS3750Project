@@ -142,20 +142,39 @@ namespace GroupThreeTrailerParkProject.Controllers
             return View(reservation);
         }
 
-        public IActionResult Create()
+        public IActionResult Create(
+            int? siteId,
+            DateTime? checkInDate,
+            DateTime? checkOutDate,
+            int? siteCategoryId,
+            int? minVehicleSize,
+            string? returnTo)
         {
-            PopulateSitesDropDownList();
+            PopulateSitesDropDownList(siteId);
+
+            ViewBag.ReturnTo = returnTo;
+            ViewBag.ReturnSiteCategoryId = siteCategoryId;
+            ViewBag.ReturnMinVehicleSize = minVehicleSize;
+            ViewBag.ReturnCheckInDate = checkInDate?.ToString("yyyy-MM-dd");
+            ViewBag.ReturnCheckOutDate = checkOutDate?.ToString("yyyy-MM-dd");
 
             return View(new Reservation
             {
-                CheckInDate = DateTime.Today,
-                CheckOutDate = DateTime.Today.AddDays(1)
+                SiteId = siteId ?? 0,
+                CheckInDate = checkInDate ?? DateTime.Today,
+                CheckOutDate = checkOutDate ?? DateTime.Today.AddDays(1)
             });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Reservation reservation)
+        public async Task<IActionResult> Create(
+            [Bind("ReservationId,SiteId,CheckInDate,CheckOutDate,Status")] Reservation reservation,
+            string? returnTo,
+            int? siteCategoryId,
+            int? minVehicleSize,
+            DateTime? checkInDate,
+            DateTime? checkOutDate)
         {
             var currentUser = await _userManager.GetUserAsync(User);
             var accountId = await GetCurrentGuestAccountIdAsync();
@@ -207,6 +226,12 @@ namespace GroupThreeTrailerParkProject.Controllers
 
                 return RedirectToAction(nameof(Review), new { id = reservation.ReservationID });
             }
+
+            ViewBag.ReturnTo = returnTo;
+            ViewBag.ReturnSiteCategoryId = siteCategoryId;
+            ViewBag.ReturnMinVehicleSize = minVehicleSize;
+            ViewBag.ReturnCheckInDate = checkInDate?.ToString("yyyy-MM-dd");
+            ViewBag.ReturnCheckOutDate = checkOutDate?.ToString("yyyy-MM-dd");
 
             PopulateSitesDropDownList(reservation.SiteId);
             return View(reservation);
