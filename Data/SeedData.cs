@@ -20,6 +20,10 @@ public static class SeedData
         new SiteCategory
         {
             Name = "Standard RV Site"
+        },
+        new SiteCategory
+        { 
+            Name = "Back-In Trailer Site"
         }
     );
 }
@@ -30,14 +34,22 @@ await context.SaveChangesAsync();
 if (!context.PriceRanges.Any())
 {
     var category = context.SiteCategory.First();
+    var categoryOther = context.SiteCategory.ElementAt(1);
 
-    context.PriceRanges.Add(
+    context.PriceRanges.AddRange(
         new PriceRange
         {
             SiteCategoryId = category.SiteCategoryId,
             Price = 45.00m,
             StartDate = new DateTime(2026, 1, 1),
             EndDate = null // stays forever
+        },
+        new PriceRange
+        {
+            SiteCategoryId = categoryOther.SiteCategoryId,
+            Price = 25.00m,
+            StartDate = new DateTime(2026, 1, 1),
+            EndDate = null
         }
     );
 }
@@ -48,12 +60,37 @@ await context.SaveChangesAsync();
 if (!context.Site.Any())
 {
     var category = context.SiteCategory.First();
+    var categoryOther = context.SiteCategory.ElementAt(1);
 
-    context.Site.Add(
+    context.Site.AddRange(
         new Site
         {
             SiteCategoryId = category.SiteCategoryId,
             MaxVehicleSize = 40,
+            VisibleToClient = true
+        },
+        new Site
+        {
+            SiteCategoryId = category.SiteCategoryId,
+            MaxVehicleSize = 40,
+            VisibleToClient = false
+        },
+        new Site
+        {
+            SiteCategoryId = category.SiteCategoryId,
+            MaxVehicleSize = 35,
+            VisibleToClient = true
+        },
+        new Site
+        {
+            SiteCategoryId = categoryOther.SiteCategoryId,
+            MaxVehicleSize = 24,
+            VisibleToClient = true
+        },
+        new Site
+        {
+            SiteCategoryId = categoryOther.SiteCategoryId,
+            MaxVehicleSize = 24,
             VisibleToClient = true
         }
     );
@@ -66,12 +103,36 @@ await context.SaveChangesAsync();
         if (!context.SitePhotos.Any())
         {
             var site = context.Site.First();
+            var site2 = context.Site.ElementAt(1);
+            var site3 = context.Site.ElementAt(2);
+            var site4 = context.Site.ElementAt(3);
+            var site5 = context.Site.ElementAt(4);
 
             context.SitePhotos.AddRange(
                 new SitePhoto
                 {
                     SiteId = site.SiteId,
                     PhotoUrl = "https://images.unsplash.com/photo-1597327190279-43b91807c7a5"
+                },
+                new SitePhoto
+                {
+                    SiteId = site2.SiteId,
+                    PhotoUrl = "https://images.unsplash.com/photo-1597327190279-43b91807c7a5"
+                },
+                new SitePhoto
+                {
+                    SiteId = site3.SiteId,
+                    PhotoUrl = "https://images.unsplash.com/photo-1597327190279-43b91807c7a5"
+                },
+                new SitePhoto
+                {
+                    SiteId = site4.SiteId,
+                    PhotoUrl = "https://images.pexels.com/photos/5991595/pexels-photo-5991595.jpeg?cs=srgb&dl=pexels-jeffstapleton-5991595.jpg&fm=jpg"
+                },
+                new SitePhoto
+                {
+                    SiteId = site5.SiteId,
+                    PhotoUrl = "https://images.pexels.com/photos/5991595/pexels-photo-5991595.jpeg?cs=srgb&dl=pexels-jeffstapleton-5991595.jpg&fm=jpg"
                 }
             );
         }
@@ -110,6 +171,7 @@ await context.SaveChangesAsync();
             role: "Guest",
             dodAffiliation: DODAffiliation.Other,
             dodStatus: DODStatus.Retired);
+
         await SeedUser(
             userManager,
             context,
