@@ -204,7 +204,7 @@ await context.SaveChangesAsync();
                 },
                 new Reservation
                 {
-                    AccountID = 1,
+                    AccountID = 2,
                     CustomerName = "Mary Johnson",
                     SiteId = 1,
                     CheckInDate = DateTime.Today.AddDays(3),
@@ -216,7 +216,171 @@ await context.SaveChangesAsync();
                     Status = "Confirmed",
                     DateCreated = DateTime.Now,
                     ExtraNotes = ""
-                }
+                },
+
+
+new Reservation
+{
+    AccountID = 3,
+    CustomerName = "James Carter",
+    SiteId = 1,
+    CheckInDate = DateTime.Today.AddDays(1),
+    CheckOutDate = DateTime.Today.AddDays(3),
+    NumAdults = 2,
+    Pets = 1,
+    BaseCost = 120,
+    TotalCost = 130,
+    Status = "Confirmed",
+    DateCreated = DateTime.Now,
+    ExtraNotes = ""
+},
+
+new Reservation
+{
+    AccountID = 4,
+    CustomerName = "Olivia Martinez",
+    SiteId = 2,
+    CheckInDate = DateTime.Today.AddDays(2),
+    CheckOutDate = DateTime.Today.AddDays(5),
+    NumAdults = 3,
+    Pets = 0,
+    BaseCost = 180,
+    TotalCost = 180,
+    Status = "Confirmed",
+    DateCreated = DateTime.Now,
+    ExtraNotes = ""
+},
+
+new Reservation
+{
+    AccountID = 5,
+    CustomerName = "Liam Thompson",
+    SiteId = 3,
+    CheckInDate = DateTime.Today.AddDays(4),
+    CheckOutDate = DateTime.Today.AddDays(7),
+    NumAdults = 2,
+    Pets = 2,
+    BaseCost = 200,
+    TotalCost = 220,
+    Status = "Confirmed",
+    DateCreated = DateTime.Now,
+    ExtraNotes = ""
+},
+
+new Reservation
+{
+    AccountID = 6,
+    CustomerName = "Sophia Anderson",
+    SiteId = 4,
+    CheckInDate = DateTime.Today.AddDays(6),
+    CheckOutDate = DateTime.Today.AddDays(9),
+    NumAdults = 4,
+    Pets = 0,
+    BaseCost = 210,
+    TotalCost = 210,
+    Status = "Confirmed",
+    DateCreated = DateTime.Now,
+    ExtraNotes = ""
+},
+
+new Reservation
+{
+    AccountID = 7,
+    CustomerName = "Noah Wilson",
+    SiteId = 5,
+    CheckInDate = DateTime.Today.AddDays(8),
+    CheckOutDate = DateTime.Today.AddDays(11),
+    NumAdults = 2,
+    Pets = 1,
+    BaseCost = 170,
+    TotalCost = 180,
+    Status = "Confirmed",
+    DateCreated = DateTime.Now,
+    ExtraNotes = ""
+},
+
+new Reservation
+{
+    AccountID = 8,
+    CustomerName = "Ava Rodriguez",
+    SiteId = 1,
+    CheckInDate = DateTime.Today.AddDays(4),
+    CheckOutDate = DateTime.Today.AddDays(6),
+    NumAdults = 3,
+    Pets = 0,
+    BaseCost = 140,
+    TotalCost = 140,
+    Status = "Confirmed",
+    DateCreated = DateTime.Now,
+    ExtraNotes = ""
+},
+
+new Reservation
+{
+    AccountID = 9,
+    CustomerName = "Ethan Clark",
+    SiteId = 2,
+    CheckInDate = DateTime.Today.AddDays(6),
+    CheckOutDate = DateTime.Today.AddDays(8),
+    NumAdults = 2,
+    Pets = 1,
+    BaseCost = 160,
+    TotalCost = 170,
+    Status = "Confirmed",
+    DateCreated = DateTime.Now,
+    ExtraNotes = ""
+},
+
+new Reservation
+{
+    AccountID = 10,
+    CustomerName = "Isabella Lewis",
+    SiteId = 3,
+    CheckInDate = DateTime.Today.AddDays(8),
+    CheckOutDate = DateTime.Today.AddDays(10),
+    NumAdults = 4,
+    Pets = 0,
+    BaseCost = 190,
+    TotalCost = 190,
+    Status = "Confirmed",
+    DateCreated = DateTime.Now,
+    ExtraNotes = ""
+},
+
+new Reservation
+{
+    AccountID = 11,
+    CustomerName = "Mason Walker",
+    SiteId = 4,
+    CheckInDate = DateTime.Today.AddDays(10),
+    CheckOutDate = DateTime.Today.AddDays(13),
+    NumAdults = 2,
+    Pets = 2,
+    BaseCost = 220,
+    TotalCost = 240,
+    Status = "Confirmed",
+    DateCreated = DateTime.Now,
+    ExtraNotes = ""
+},
+
+new Reservation
+{
+    AccountID = 12,
+    CustomerName = "Charlotte Hall",
+    SiteId = 5,
+    CheckInDate = DateTime.Today.AddDays(12),
+    CheckOutDate = DateTime.Today.AddDays(15),
+    NumAdults = 3,
+    Pets = 0,
+    BaseCost = 200,
+    TotalCost = 200,
+    Status = "Confirmed",
+    DateCreated = DateTime.Now,
+    ExtraNotes = ""
+}
+
+
+                
             );
             context.SaveChanges();
         }
