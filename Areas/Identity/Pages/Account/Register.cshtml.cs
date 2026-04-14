@@ -4,6 +4,7 @@
 
 using GroupThreeTrailerParkProject.Data;
 using GroupThreeTrailerParkProject.Models;
+using GroupThreeTrailerParkProject.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -33,6 +34,7 @@ namespace GroupThreeTrailerParkProject.Areas.Identity.Pages.Account
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
         private readonly ApplicationDbContext _context; //Dallen addition to get access levels working
+        private readonly IEmailService _emailService; // Custom email service for welcome emails
 
         public RegisterModel(
             UserManager<UserAccount> userManager,
@@ -40,7 +42,8 @@ namespace GroupThreeTrailerParkProject.Areas.Identity.Pages.Account
             SignInManager<UserAccount> signInManager,
             ILogger<RegisterModel> logger,
             IEmailSender emailSender,
-            ApplicationDbContext context) //Dallen addition to get access levels working
+            ApplicationDbContext context, //Dallen addition to get access levels working
+            IEmailService emailService) // Custom email service
         {
             _userManager = userManager;
             _userStore = userStore;
@@ -49,6 +52,7 @@ namespace GroupThreeTrailerParkProject.Areas.Identity.Pages.Account
             _logger = logger;
             _emailSender = emailSender;
             _context = context; //Dallen addition to get access levels working
+            _emailService = emailService;
         }
         
         /// <summary>
@@ -171,6 +175,9 @@ namespace GroupThreeTrailerParkProject.Areas.Identity.Pages.Account
                     await _context.SaveChangesAsync();
 
                     _logger.LogInformation("User created a new account with password.");
+
+                    // Send welcome email
+                    await _emailService.SendWelcomeEmailAsync(Input.Email, Input.FirstName, Input.LastName);
 
                     var userId = await _userManager.GetUserIdAsync(user);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);

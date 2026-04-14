@@ -1,5 +1,6 @@
 using GroupThreeTrailerParkProject.Data;
 using GroupThreeTrailerParkProject.Models;
+using GroupThreeTrailerParkProject.Services;
 using Microsoft.AspNetCore.Identity; //Added for identificaiton, was on default verion of web app -Dallen
 using Microsoft.EntityFrameworkCore;
 
@@ -15,6 +16,14 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddDefaultIdentity<UserAccount>(options => options.SignIn.RequireConfirmedAccount = true) //Dallen - changed to true for email account verification to work
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
+
+// Register Email Service (using real SMTP for production)
+// To use mock for testing, change EmailService to MockEmailService
+builder.Services.AddScoped<IEmailService, EmailService>();
+
+// Register Background Services
+builder.Services.AddHostedService<CheckInReminderService>();
+
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();

@@ -1,5 +1,6 @@
 ﻿using GroupThreeTrailerParkProject.Data;
 using GroupThreeTrailerParkProject.Models;
+using GroupThreeTrailerParkProject.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -15,10 +16,12 @@ namespace GroupThreeTrailerParkProject.Controllers
     public class AdminReservationsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IEmailService _emailService;
 
-        public AdminReservationsController(ApplicationDbContext context)
+        public AdminReservationsController(ApplicationDbContext context, IEmailService emailService)
         {
             _context = context;
+            _emailService = emailService;
         }
 
         public async Task<IActionResult> Index(
@@ -194,6 +197,31 @@ namespace GroupThreeTrailerParkProject.Controllers
                 _context.Add(reservation);
                 await _context.SaveChangesAsync();
 
+                // Send email if status is Confirmed
+                if (reservation.Status == "Confirmed")
+                {
+                    // Get guest email using AccountID directly from the reservation
+                    var guestProfile = await _context.GuestProfiles
+                        .Include(g => g.UserAccount)
+                        .FirstOrDefaultAsync(g => g.Id == reservation.AccountID);
+
+                    var guestEmail = guestProfile?.UserAccount?.Email;
+
+                    if (!string.IsNullOrEmpty(guestEmail))
+                    {
+                        await _emailService.SendPaymentConfirmationEmailAsync(
+                            guestEmail,
+                            reservation.CustomerName,
+                            reservation.ReservationID,
+                            reservation.CheckInDate,
+                            reservation.CheckOutDate,
+                            reservation.SiteId,
+                            reservation.TotalCost ?? 0,
+                            reservation.ExtraNotes ?? ""
+                        );
+                    }
+                }
+
                 return RedirectToAction(nameof(Index));
             }
 
@@ -279,6 +307,68 @@ namespace GroupThreeTrailerParkProject.Controllers
                 _context.Update(reservation);
                 await _context.SaveChangesAsync();
 
+                // Check if status changed from Pending to Confirmed
+                bool statusChangedToConfirmed = existingReservation.Status != "Confirmed" && reservation.Status == "Confirmed";
+
+                // Send payment confirmation email if status just changed to Confirmed
+                if (statusChangedToConfirmed)
+                {
+                    var guestProfile = await _context.GuestProfiles
+                        .Include(g => g.UserAccount)
+                        .FirstOrDefaultAsync(g => g.Id == reservation.AccountID);
+
+                    var guestEmail = guestProfile?.UserAccount?.Email;
+
+                    if (!string.IsNullOrEmpty(guestEmail))
+                    {
+                        await _emailService.SendPaymentConfirmationEmailAsync(
+                            guestEmail,
+                            reservation.CustomerName,
+                            reservation.ReservationID,
+                            reservation.CheckInDate,
+                            reservation.CheckOutDate,
+                            reservation.SiteId,
+                            reservation.TotalCost ?? 0,
+                            reservation.ExtraNotes ?? ""
+                        );
+                    }
+                }
+                // Send modification email if status was already Confirmed and other changes were made
+                else if (reservation.Status == "Confirmed" && existingReservation.Status == "Confirmed")
+                {
+                    bool hasChanges = existingReservation.SiteId != reservation.SiteId ||
+                                      existingReservation.CheckInDate != reservation.CheckInDate ||
+                                      existingReservation.CheckOutDate != reservation.CheckOutDate ||
+                                      existingReservation.NumAdults != reservation.NumAdults ||
+                                      existingReservation.Pets != reservation.Pets ||
+                                      existingReservation.TotalCost != reservation.TotalCost;
+
+                    if (hasChanges)
+                    {
+                        var guestEmail = await GetGuestEmailFromReservationAsync(reservation.ReservationID);
+                        if (!string.IsNullOrEmpty(guestEmail))
+                        {
+                            await _emailService.SendReservationModifiedEmailAsync(
+                                guestEmail,
+                                reservation.CustomerName,
+                                reservation.ReservationID,
+                                existingReservation.CheckInDate,
+                                reservation.CheckInDate,
+                                existingReservation.CheckOutDate,
+                                reservation.CheckOutDate,
+                                existingReservation.SiteId,
+                                reservation.SiteId,
+                                existingReservation.NumAdults,
+                                reservation.NumAdults,
+                                existingReservation.Pets,
+                                reservation.Pets,
+                                existingReservation.TotalCost ?? 0,
+                                reservation.TotalCost ?? 0
+                            );
+                        }
+                    }
+                }
+
                 return RedirectToAction(nameof(Index));
             }
 
@@ -316,10 +406,37 @@ namespace GroupThreeTrailerParkProject.Controllers
                 return NotFound();
             }
 
+            // Store original values before changing status
+            var originalCheckInDate = reservation.CheckInDate;
+            var originalCheckOutDate = reservation.CheckOutDate;
+            var originalSiteId = reservation.SiteId;
+            var originalTotalCost = reservation.TotalCost;
+            var originalCustomerName = reservation.CustomerName;
+            var wasConfirmed = reservation.Status == "Confirmed";
+
             reservation.Status = "Canceled";
             _context.Update(reservation);
 
             await _context.SaveChangesAsync();
+
+            // Send cancellation email if the reservation was previously Confirmed
+            if (wasConfirmed)
+            {
+                var guestEmail = await GetGuestEmailFromReservationAsync(id);
+                if (!string.IsNullOrEmpty(guestEmail))
+                {
+                    await _emailService.SendReservationCanceledEmailAsync(
+                        guestEmail,
+                        originalCustomerName,
+                        id,
+                        originalCheckInDate,
+                        originalCheckOutDate,
+                        originalSiteId,
+                        originalTotalCost ?? 0
+                    );
+                }
+            }
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -570,6 +687,21 @@ namespace GroupThreeTrailerParkProject.Controllers
         private void PopulateStatusDropDownList(string? selectedStatus = null)
         {
             ViewBag.StatusList = new SelectList(AllowedStatuses, selectedStatus);
+        }
+
+        private async Task<string?> GetGuestEmailFromReservationAsync(int reservationId)
+        {
+            var reservation = await _context.Reservations
+                .FirstOrDefaultAsync(r => r.ReservationID == reservationId);
+
+            if (reservation == null)
+                return null;
+
+            var guestProfile = await _context.GuestProfiles
+                .Include(g => g.UserAccount)
+                .FirstOrDefaultAsync(g => g.Id == reservation.AccountID);
+
+            return guestProfile?.UserAccount?.Email;
         }
     }
 }
