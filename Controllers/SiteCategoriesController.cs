@@ -20,13 +20,63 @@ namespace GroupThreeTrailerParkProject.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(
+        int? siteCategoryId,
+        int? minVehicleSize,
+        DateTime? checkInDate,
+        DateTime? checkOutDate)
         {
-            var sites = await _context.Site
-                .Include(s => s.SiteCategory)
-                .ToListAsync();
+        var sitesQuery = _context.Site
+        .Include(s => s.SiteCategory)
+        .AsQueryable();
 
-            return View(sites);
+        // Guests should only see sites that are visible to clients
+        if (User.IsInRole("Guest"))
+        {
+        sitesQuery = sitesQuery.Where(s => s.VisibleToClient);
+        }
+
+        // Filter by category
+        if (siteCategoryId.HasValue)
+        {
+        sitesQuery = sitesQuery.Where(s => s.SiteCategoryId == siteCategoryId.Value);
+        }
+
+        // Filter by minimum vehicle size
+        if (minVehicleSize.HasValue)
+        {
+        sitesQuery = sitesQuery.Where(s => s.MaxVehicleSize >= minVehicleSize.Value);
+        }
+
+        // Filter by availability
+        if (checkInDate.HasValue && checkOutDate.HasValue && checkOutDate > checkInDate)
+        {
+        var start = checkInDate.Value.Date;
+        var end = checkOutDate.Value.Date;
+
+        sitesQuery = sitesQuery.Where(site =>
+            !_context.Reservations.Any(r =>
+                r.SiteId == site.SiteId &&
+                r.Status != "Canceled" &&
+                start < r.CheckOutDate &&
+                end > r.CheckInDate));
+        }
+
+        ViewBag.SiteCategoryId = new SelectList(
+        await _context.SiteCategory.OrderBy(c => c.Name).ToListAsync(),
+        "SiteCategoryId",
+        "Name",
+        siteCategoryId);
+
+        ViewBag.MinVehicleSize = minVehicleSize;
+        ViewBag.CheckInDate = checkInDate?.ToString("yyyy-MM-dd");
+        ViewBag.CheckOutDate = checkOutDate?.ToString("yyyy-MM-dd");
+
+        var sites = await sitesQuery
+        .OrderBy(s => s.SiteId)
+        .ToListAsync();
+
+        return View(sites);
         }
 
         public async Task<IActionResult> Details(int? id)
@@ -210,8 +260,18 @@ namespace GroupThreeTrailerParkProject.Controllers
                 return NotFound();
             }
 
+
+
+            
+
             var site = await _context.Site.FindAsync(id);
             if (site == null)
+            {
+                return NotFound();
+            }
+            
+            // Hides if not visible
+            if (User.IsInRole("Guest") && !site.VisibleToClient)
             {
                 return NotFound();
             }

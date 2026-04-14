@@ -27,5 +27,10 @@ namespace GroupThreeTrailerParkProject.Services
         /// </summary>
         Task SendCheckInReminderEmailAsync(string toEmail, string customerName, int reservationId,
             DateTime checkInDate, int siteId, string extraNotes);
+
+        /// <summary>
+        /// Sends a welcome email when a new account is registered
+        /// </summary>
+        Task SendWelcomeEmailAsync(string toEmail, string firstName, string lastName);
     }
 }

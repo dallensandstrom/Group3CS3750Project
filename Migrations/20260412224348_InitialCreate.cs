@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace GroupThreeTrailerParkProject.Migrations
 {
     /// <inheritdoc />
-    public partial class AddCustomerReservationsView : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

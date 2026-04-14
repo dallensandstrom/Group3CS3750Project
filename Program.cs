@@ -13,12 +13,13 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
 //Added back modified identity builder, was on default verion of web app -Dallen
-builder.Services.AddDefaultIdentity<UserAccount>(options => options.SignIn.RequireConfirmedAccount = false)
+builder.Services.AddDefaultIdentity<UserAccount>(options => options.SignIn.RequireConfirmedAccount = true) //Dallen - changed to true for email account verification to work
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
-// Register Email Service (using Mock for development/testing)
-builder.Services.AddScoped<IEmailService, MockEmailService>();
+// Register Email Service (using real SMTP for production)
+// To use mock for testing, change EmailService to MockEmailService
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Register Background Services
 builder.Services.AddHostedService<CheckInReminderService>();

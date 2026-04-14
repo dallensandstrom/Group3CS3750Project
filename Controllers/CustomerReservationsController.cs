@@ -27,10 +27,10 @@ namespace GroupThreeTrailerParkProject.Controllers
         }
 
         public async Task<IActionResult> Index(
-    DateTime? startDate,
-    DateTime? endDate,
-    string? status,
-    string? petFilter)
+        DateTime? startDate,
+        DateTime? endDate,
+        string? status,
+        string? petFilter)
         {
             var accountId = await GetCurrentGuestAccountIdAsync();
             if (accountId == null)
@@ -146,21 +146,39 @@ namespace GroupThreeTrailerParkProject.Controllers
             return View(reservation);
         }
 
-        public IActionResult Create(int? siteId)
+        public IActionResult Create(
+            int? siteId,
+            DateTime? checkInDate,
+            DateTime? checkOutDate,
+            int? siteCategoryId,
+            int? minVehicleSize,
+            string? returnTo)
         {
             PopulateSitesDropDownList(siteId);
+
+            ViewBag.ReturnTo = returnTo;
+            ViewBag.ReturnSiteCategoryId = siteCategoryId;
+            ViewBag.ReturnMinVehicleSize = minVehicleSize;
+            ViewBag.ReturnCheckInDate = checkInDate?.ToString("yyyy-MM-dd");
+            ViewBag.ReturnCheckOutDate = checkOutDate?.ToString("yyyy-MM-dd");
 
             return View(new Reservation
             {
                 SiteId = siteId ?? 0,
-                CheckInDate = DateTime.Today,
-                CheckOutDate = DateTime.Today.AddDays(1)
+                CheckInDate = checkInDate ?? DateTime.Today,
+                CheckOutDate = checkOutDate ?? DateTime.Today.AddDays(1)
             });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Reservation reservation)
+        public async Task<IActionResult> Create(
+            [Bind("ReservationID,SiteId,CheckInDate,CheckOutDate,NumAdults,Pets,ExtraNotes")] Reservation reservation,
+            string? returnTo,
+            int? siteCategoryId,
+            int? minVehicleSize,
+            string? returnCheckInDate,
+            string? returnCheckOutDate)
         {
             var currentUser = await _userManager.GetUserAsync(User);
             var accountId = await GetCurrentGuestAccountIdAsync();
@@ -213,11 +231,17 @@ namespace GroupThreeTrailerParkProject.Controllers
                 return RedirectToAction(nameof(Review), new { id = reservation.ReservationID });
             }
 
+            ViewBag.ReturnTo = returnTo;
+            ViewBag.ReturnSiteCategoryId = siteCategoryId;
+            ViewBag.ReturnMinVehicleSize = minVehicleSize;
+            ViewBag.ReturnCheckInDate = returnCheckInDate;
+            ViewBag.ReturnCheckOutDate = returnCheckOutDate;
+
             PopulateSitesDropDownList(reservation.SiteId);
             return View(reservation);
         }
 
-        public async Task<IActionResult> Review(int? id)
+        public async Task<IActionResult> Review(int? id, bool fromEdit = false)
         {
             if (id == null) return NotFound();
             var accountId = await GetCurrentGuestAccountIdAsync();
@@ -230,12 +254,16 @@ namespace GroupThreeTrailerParkProject.Controllers
                     r.AccountID == accountId.Value);
 
             if (reservation == null) return NotFound();
+
+            // Pass the flag to the view so it can be sent to ConfirmPayment
+            ViewBag.FromEdit = fromEdit;
+
             return View(reservation);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ConfirmPayment(int id)
+        public async Task<IActionResult> ConfirmPayment(int id, bool fromEdit = false)
         {
             var accountId = await GetCurrentGuestAccountIdAsync();
             if (accountId == null) return Forbid();
@@ -277,20 +305,23 @@ namespace GroupThreeTrailerParkProject.Controllers
             _context.Update(reservation);
             await _context.SaveChangesAsync();
 
-            // Send payment confirmation email
-            var guestEmail = await GetGuestEmailFromReservationAsync(id);
-            if (!string.IsNullOrEmpty(guestEmail))
+            // Only send payment confirmation email if not coming from edit (modification email already sent)
+            if (!fromEdit)
             {
-                await _emailService.SendPaymentConfirmationEmailAsync(
-                    guestEmail,
-                    reservation.CustomerName,
-                    reservation.ReservationID,
-                    reservation.CheckInDate,
-                    reservation.CheckOutDate,
-                    reservation.SiteId,
-                    reservation.TotalCost ?? 0,
-                    reservation.ExtraNotes ?? ""
-                );
+                var guestEmail = await GetGuestEmailFromReservationAsync(id);
+                if (!string.IsNullOrEmpty(guestEmail))
+                {
+                    await _emailService.SendPaymentConfirmationEmailAsync(
+                        guestEmail,
+                        reservation.CustomerName,
+                        reservation.ReservationID,
+                        reservation.CheckInDate,
+                        reservation.CheckOutDate,
+                        reservation.SiteId,
+                        reservation.TotalCost ?? 0,
+                        reservation.ExtraNotes ?? ""
+                    );
+                }
             }
 
             TempData["SuccessMessage"] = "Reservation confirmed successfully!";
@@ -429,7 +460,8 @@ namespace GroupThreeTrailerParkProject.Controllers
                 // Only redirect to Review if changes were made, otherwise go back to Index
                 if (hasChanges)
                 {
-                    return RedirectToAction(nameof(Review), new { id = reservation.ReservationID });
+                    // Pass a flag to indicate this is a re-confirmation after editing
+                    return RedirectToAction(nameof(Review), new { id = reservation.ReservationID, fromEdit = true });
                 }
                 else
                 {

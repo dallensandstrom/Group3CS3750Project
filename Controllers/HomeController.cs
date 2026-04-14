@@ -15,6 +15,10 @@ namespace GroupThreeTrailerParkProject.Controllers
 
         public IActionResult Index()
         {
+            //Dallen Sandstrom change, redirect to site page if user is authenticated
+            if (User.Identity != null && User.Identity.IsAuthenticated) {
+                return RedirectToAction("Index", "Site");
+            }
             return View();
         }
 

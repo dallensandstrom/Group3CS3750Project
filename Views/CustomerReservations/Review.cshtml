@@ -42,6 +42,10 @@
             </div>
 
             <form method="post" asp-action="ConfirmPayment" asp-route-id="@Model.ReservationID" class="mb-3">
+                @if (ViewBag.FromEdit != null && ViewBag.FromEdit == true)
+                {
+                    <input type="hidden" name="fromEdit" value="true" />
+                }
                 @if (Model.Status == "Pending")
                 {
                     <button type="submit" class="btn btn-success">Confirm & Complete Payment</button>

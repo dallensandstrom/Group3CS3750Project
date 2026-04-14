@@ -213,5 +213,34 @@ namespace GroupThreeTrailerParkProject.Services
 
             return Task.CompletedTask;
         }
+
+        public Task SendWelcomeEmailAsync(string toEmail, string firstName, string lastName)
+        {
+            var emailContent = new StringBuilder();
+            emailContent.AppendLine("\n╔════════════════════════════════════════════════════════════════╗");
+            emailContent.AppendLine("║              📧 WELCOME EMAIL (MOCK)                          ║");
+            emailContent.AppendLine("╚════════════════════════════════════════════════════════════════╝");
+            emailContent.AppendLine($"  To:      {toEmail}");
+            emailContent.AppendLine($"  Subject: Welcome to RV Park!");
+            emailContent.AppendLine("─────────────────────────────────────────────────────────────────");
+            emailContent.AppendLine($"  Dear {firstName} {lastName},");
+            emailContent.AppendLine();
+            emailContent.AppendLine("  Welcome to RV Park! Your account has been successfully created.");
+            emailContent.AppendLine();
+            emailContent.AppendLine("  GETTING STARTED:");
+            emailContent.AppendLine("    • Browse available sites");
+            emailContent.AppendLine("    • Make your first reservation");
+            emailContent.AppendLine("    • Manage your bookings online");
+            emailContent.AppendLine();
+            emailContent.AppendLine("  Need help? Contact us anytime!");
+            emailContent.AppendLine("─────────────────────────────────────────────────────────────────");
+            emailContent.AppendLine("  ✅ This email was NOT actually sent (using MockEmailService)");
+            emailContent.AppendLine("╚════════════════════════════════════════════════════════════════╝\n");
+
+            _logger.LogInformation(emailContent.ToString());
+            Console.WriteLine(emailContent.ToString());
+
+            return Task.CompletedTask;
+        }
     }
 }

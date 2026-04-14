@@ -251,5 +251,47 @@ namespace GroupThreeTrailerParkProject.Services
                 // Don't throw exception - don't want email failures to break the app
             }
         }
+
+        public async Task SendWelcomeEmailAsync(string toEmail, string firstName, string lastName)
+        {
+            var subject = "Welcome to RV Park!";
+            var htmlBody = $@"
+                <html>
+                <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
+                    <div style='max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;'>
+                        <h2 style='color: #2c5f2d; border-bottom: 3px solid #2c5f2d; padding-bottom: 10px;'>
+                            Welcome to RV Park!
+                        </h2>
+
+                        <p>Dear {firstName} {lastName},</p>
+
+                        <p>Welcome to RV Park! Your account has been successfully created and you're all set to start making reservations.</p>
+
+                        <div style='background-color: white; padding: 20px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #2c5f2d;'>
+                            <h3 style='margin-top: 0; color: #2c5f2d;'>Getting Started:</h3>
+                            <ul>
+                                <li>Browse our available sites</li>
+                                <li>Make your first reservation</li>
+                                <li>Manage your bookings online anytime</li>
+                                <li>View your reservation history</li>
+                            </ul>
+                        </div>
+
+                        <p>If you have any questions or need assistance, please don't hesitate to contact us.</p>
+
+                        <p style='margin-top: 30px;'>
+                            Best regards,<br>
+                            <strong>RV Park Team</strong>
+                        </p>
+
+                        <div style='margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666;'>
+                            <p>This is an automated email. Please do not reply to this message.</p>
+                        </div>
+                    </div>
+                </body>
+                </html>";
+
+            await SendEmailAsync(toEmail, subject, htmlBody);
+        }
     }
 }
