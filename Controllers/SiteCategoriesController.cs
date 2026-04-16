@@ -299,73 +299,65 @@ namespace GroupThreeTrailerParkProject.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Edit(int id, Site site, string submitButton, string NewPhotoUrl)
+[ValidateAntiForgeryToken]
+[Authorize(Roles = "Admin")]
+public async Task<IActionResult> Edit(int id, Site site, string submitButton, string NewPhotoUrl)
+{
+    if (id != site.SiteId)
+    {
+        return NotFound();
+    }
+
+    var existingSite = await _context.Site.FindAsync(site.SiteId);
+    if (existingSite == null)
+    {
+        return NotFound();
+    }
+
+    if (submitButton == "Delete")
+    {
+        var photos = await _context.SitePhotos
+            .Where(p => p.SiteId == site.SiteId)
+            .ToListAsync();
+
+        if (photos.Any())
         {
-            if (id != site.SiteId)
-            {
-                return NotFound();
-            }
-
-            if (submitButton == "Delete")
-            {
-                var photos = await _context.SitePhotos
-                    .Where(p => p.SiteId == site.SiteId)
-                    .ToListAsync();
-
-                if (photos.Any())
-                {
-                    _context.SitePhotos.RemoveRange(photos);
-                }
-
-                var existingSite = await _context.Site.FindAsync(site.SiteId);
-                if (existingSite != null)
-                {
-                    _context.Site.Remove(existingSite);
-                }
-
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-
-            if (submitButton == "Apply")
-            {
-                if (ModelState.IsValid)
-                {
-                    var existingSite = await _context.Site.FindAsync(site.SiteId);
-                    if (existingSite == null)
-                    {
-                        return NotFound();
-                    }
-
-                    existingSite.SiteCategoryId = site.SiteCategoryId;
-                    existingSite.MaxVehicleSize = site.MaxVehicleSize;
-                    existingSite.VisibleToClient = site.VisibleToClient;
-
-                    if (!string.IsNullOrWhiteSpace(NewPhotoUrl))
-                    {
-                        var newPhoto = new SitePhoto
-                        {
-                            SiteId = site.SiteId,
-                            PhotoUrl = NewPhotoUrl
-                        };
-
-                        _context.SitePhotos.Add(newPhoto);
-                    }
-
-                    await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Edit), new { id = site.SiteId });
-                }
-            }
-
-            ViewBag.SiteCategoryId = new SelectList(_context.SiteCategory, "SiteCategoryId", "Name", site.SiteCategoryId);
-
-            ViewBag.Photos = await _context.SitePhotos
-                .Where(p => p.SiteId == site.SiteId)
-                .ToListAsync();
-
-            return View(site);
+            _context.SitePhotos.RemoveRange(photos);
         }
+
+        _context.Site.Remove(existingSite);
+        await _context.SaveChangesAsync();
+        return RedirectToAction(nameof(Index));
+    }
+
+    if (submitButton == "Apply")
+    {
+        existingSite.SiteCategoryId = site.SiteCategoryId;
+        existingSite.MaxVehicleSize = site.MaxVehicleSize;
+        existingSite.VisibleToClient = site.VisibleToClient;
+
+        if (!string.IsNullOrWhiteSpace(NewPhotoUrl))
+        {
+            var newPhoto = new SitePhoto
+            {
+                SiteId = site.SiteId,
+                PhotoUrl = NewPhotoUrl
+            };
+
+            _context.SitePhotos.Add(newPhoto);
+        }
+
+        await _context.SaveChangesAsync();
+        return RedirectToAction(nameof(Edit), new { id = site.SiteId });
+    }
+
+    ViewBag.SiteCategoryId = new SelectList(_context.SiteCategory, "SiteCategoryId", "Name", site.SiteCategoryId);
+
+    ViewBag.Photos = await _context.SitePhotos
+        .Where(p => p.SiteId == site.SiteId)
+        .ToListAsync();
+
+    return View(site);
+}
     }
 }
