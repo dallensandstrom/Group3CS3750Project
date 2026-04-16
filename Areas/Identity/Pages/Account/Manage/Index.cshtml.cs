@@ -98,27 +98,34 @@ namespace GroupThreeTrailerParkProject.Areas.Identity.Pages.Account.Manage
                 return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
             }
 
+            Input.Email = user.Email;
+            ModelState.Remove("Input.Email");
+
             IsGuest = await _userManager.IsInRoleAsync(user, "Guest");
 
             if (!ModelState.IsValid)
             {
+                if (IsGuest)
+                {
+                    var guestProfile = await _context.GuestProfiles
+                        .FirstOrDefaultAsync(g => g.UserAccountID == user.Id);
+                    if (guestProfile != null)
+                    {
+                        Input.DODAffiliation = guestProfile.DODAffiliation;
+                        Input.DODStatus = guestProfile.DODStatus;
+                    }
+                }
                 return Page();
             }
 
-            // Update basic user info
+            // Update user properties
             user.FirstName = Input.FirstName;
             user.LastName = Input.LastName;
             user.PhoneNumber = Input.PhoneNumber;
 
-            var updateResult = await _userManager.UpdateAsync(user);
-            if (!updateResult.Succeeded)
-            {
-                foreach (var error in updateResult.Errors)
-                {
-                    ModelState.AddModelError(string.Empty, error.Description);
-                }
-                return Page();
-            }
+            _context.Users.Attach(user);
+            _context.Entry(user).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
 
             // Update guest-specific info if applicable
             if (IsGuest && Input.DODAffiliation.HasValue && Input.DODStatus.HasValue)
