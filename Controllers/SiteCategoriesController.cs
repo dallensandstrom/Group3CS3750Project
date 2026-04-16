@@ -87,7 +87,7 @@ namespace GroupThreeTrailerParkProject.Controllers
             }
 
             var site = await _context.Site
-                .Include(s => s.SiteCategory)
+                .Include(s => s.SiteCategory!) //Dallen - added null forgiving ! to remove warning
                     .ThenInclude(c => c.PriceRanges)
                 .FirstOrDefaultAsync(s => s.SiteId == id);
 
@@ -113,12 +113,25 @@ namespace GroupThreeTrailerParkProject.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create(Site site)
+        public async Task<IActionResult> Create(Site site, string NewPhotoUrl)
         {
             if (ModelState.IsValid)
             {
                 _context.Site.Add(site);
                 await _context.SaveChangesAsync();
+
+                if (!string.IsNullOrWhiteSpace(NewPhotoUrl)) //Added photos input (Dallen)
+                {
+                    var newPhoto = new SitePhoto
+                    {
+                        SiteId = site.SiteId,
+                        PhotoUrl = NewPhotoUrl
+                    };
+
+                    _context.SitePhotos.Add(newPhoto);
+                    await _context.SaveChangesAsync();
+                }
+
                 return RedirectToAction(nameof(Index));
             }
 
@@ -168,7 +181,7 @@ namespace GroupThreeTrailerParkProject.Controllers
                     }
                 }
 
-                return RedirectToAction(nameof(CategoryManage));
+                return RedirectToAction(nameof(Index));
             }
 
             if (submitButton == "Apply")
@@ -233,7 +246,7 @@ namespace GroupThreeTrailerParkProject.Controllers
                     }
 
                     await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(CategoryManage));
+                    return RedirectToAction(nameof(Index));
                 }
             }
 
